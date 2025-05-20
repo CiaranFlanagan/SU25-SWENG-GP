@@ -1,0 +1,23 @@
+/* Visit https://www.typescriptlang.org/tsconfig/ to learn about this file */
+{
+  "compilerOptions": {
+    /* Compile configuration */
+    "lib": ["es2024"],
+    "module": "node18",
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUncheckedSideEffectImports": true,
+    "verbatimModuleSyntax": true
+  },
+
+  "include": ["./src", "./tests", "./*.ts"],
+  "exclude": ["./node_modules"]
+}

@@ -1,0 +1,50 @@
+name: Strategy Town CI
+on:
+  push:
+    branches:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 23.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '23.x'
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Check all projects
+        run: npm run check --workspaces
+
+      - name: Lint all projects
+        run: npm run lint --workspaces
+
+      - name: Test all projects
+        run: npm run test --workspaces
+
+      - name: Build frontend
+        run: npm run build -w=client
+
+      - name: Test that the backend server starts
+        run: |
+          npm start -w=server & sleep 5
+          echo "Checking if home page is served"
+          curl --fail 'http://localhost:8000/' > /dev/null 2>&1
+
+          echo "Checking if login page is served"
+          curl --fail 'http://localhost:8000/login' > /dev/null 2>&1
+
+          echo "Checking if api endpoint returns several threads"
+          curl --fail 'http://localhost:8000/api/thread/list' 2> /dev/null | jq 'if length < 4 then error("Too few posts returned from api") else . end'
+
+      - name: Kill any node processes from previous step
+        if: ${{ always() }}
+        run: killall node || true
