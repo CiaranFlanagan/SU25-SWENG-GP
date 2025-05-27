@@ -42,3 +42,21 @@ export const gameList = async (): APIResponse<GameInfo[]> => {
     return exceptionToErrorMsg(error);
   }
 };
+
+export const getGameHistory = async (gameId: string): APIResponse<unknown[]> => {
+  try {
+    const res = await api.post<unknown[] | ErrorMsg>(`${GAME_API_URL}/${gameId}/history`);
+    return res.data;
+  } catch (error) {
+    return exceptionToErrorMsg(error);
+  }
+};
+
+export const getGameHistoryAt = async (gameId: string, index: number): APIResponse<unknown> => {
+  try {
+    const res = await api.post<unknown>(`${GAME_API_URL}/${gameId}/history/${index}`);
+    return res.data;
+  } catch (error) {
+    return exceptionToErrorMsg(error);
+  }
+};
