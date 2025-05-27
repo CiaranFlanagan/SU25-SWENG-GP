@@ -213,6 +213,12 @@ export async function updateGame(gameId: string, user: UserWithId, move: unknown
   );
   if (!result) throw new Error(`user ${user.username} made an invalid move in ${game.type}`);
 
+  game.history.push({
+    when: new Date(),
+    by: user._id,
+    move,
+  });
+
   game.state = result.state;
   game.done = game.done || result.done;
   await game.save();
@@ -241,4 +247,31 @@ export async function viewGame(gameId: string, user: UserWithId) {
     view,
     players: await Promise.all(game.players.map(populateSafeUserInfo)),
   };
+}
+
+/**
+ * Fetch the full move history for a game, if the user is a participant.
+ */
+export async function getGameHistory(gameId: string, user: UserWithId): Promise<unknown[]> {
+  if (!isValidObjectId(gameId)) throw new Error(`invalid game id`);
+  const game = await GameModel.findById(new Types.ObjectId(gameId));
+  if (!game) throw new Error(`game not found`);
+  const isPlayer = game.players.some(_id => _id.equals(user._id));
+  if (!isPlayer) throw new Error(`not a player in this game`);
+  return game.history as unknown[];
+}
+
+/**
+ * Fetch a single move from a game’s history by its zero-based index.
+ */
+export async function getGameHistoryMove(
+  gameId: string,
+  index: number,
+  user: UserWithId,
+): Promise<unknown> {
+  const history = await getGameHistory(gameId, user);
+  if (index < 0 || index >= history.length) {
+    throw new Error(`history index out of bounds`);
+  }
+  return history[index];
 }
