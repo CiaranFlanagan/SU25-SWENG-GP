@@ -26,8 +26,8 @@ app.use(
         .Router() //
         .post('/create', game.postCreate)
         .get('/list', game.getList)
-        .get('/:id/history/:index', game.getHistoryAt)
-        .get('/:id/history', game.getHistory)
+        .post('/:id/history/:index', game.getHistoryAt)
+        .post('/:id/history', game.getHistory)
         .get('/:id', game.getById),
     )
     .use(
