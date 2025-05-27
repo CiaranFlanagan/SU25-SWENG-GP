@@ -14,6 +14,8 @@ import {
   startGame,
   updateGame,
   viewGame,
+  getGameHistory,
+  getGameHistoryMove,
 } from '../services/game.service.ts';
 import { checkAuth, enforceAuth } from '../services/user.service.ts';
 import { z } from 'zod';
@@ -160,5 +162,56 @@ export const socketMakeMove: SocketAPI = (socket, io) => async body => {
     sendViewUpdates(io, gameId, viewUpdates);
   } catch (err) {
     logSocketError(socket, err);
+  }
+};
+
+export const getHistory: RestAPI<unknown[], { id: string }> = async (req, res) => {
+  const body = withAuth(z.object({})).safeParse(req.body);
+  if (body.error) {
+    res.status(400).send({ error: 'Poorly-formed request' });
+    return;
+  }
+
+  const user = await checkAuth(body.data.auth);
+  if (!user) {
+    res.status(403).send({ error: 'Invalid credentials' });
+    return;
+  }
+
+  try {
+    const history = await getGameHistory(req.params.id, user);
+    res.send(history);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      res.status(400).send({ error: err.message });
+    } else {
+      res.status(400).send({ error: 'Unknown error occurred' });
+    }
+  }
+};
+
+export const getHistoryAt: RestAPI<unknown, { id: string; index: string }> = async (req, res) => {
+  const body = withAuth(z.object({})).safeParse(req.body);
+  if (body.error) {
+    res.status(400).send({ error: 'Poorly-formed request' });
+    return;
+  }
+
+  const user = await checkAuth(body.data.auth);
+  if (!user) {
+    res.status(403).send({ error: 'Invalid credentials' });
+    return;
+  }
+
+  try {
+    const idx = parseInt(req.params.index, 10);
+    const entry = await getGameHistoryMove(req.params.id, idx, user);
+    res.send(entry);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      res.status(400).send({ error: err.message });
+    } else {
+      res.status(400).send({ error: 'Unknown error occurred' });
+    }
   }
 };
