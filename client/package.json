@@ -12,7 +12,7 @@
     "check": "tsc --noEmit",
     "vitest": "vitest",
     "preview": "vite preview",
-    "format" : "npx prettier --write ."
+    "format": "npx prettier --write ."
   },
   "dependencies": {
     "@strategy-town/shared": "^1.0.0",
