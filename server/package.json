@@ -10,7 +10,8 @@
     "lint:fix": "eslint . --fix",
     "start": "MODE=production node src/server.ts",
     "test": "vitest run --coverage",
-    "vitest": "vitest"
+    "vitest": "vitest",
+    "format": "npx prettier --write ."
   },
   "dependencies": {
     "@strategy-town/shared": "^1.0.0",

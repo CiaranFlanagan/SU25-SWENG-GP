@@ -10,7 +10,6 @@ interface GameDispatchProps {
   players: SafeUserInfo[];
   gameId: string;
   view: TaggedGameView;
-  isViewingHistory: boolean;
 }
 
 export default function GameDispatch({
