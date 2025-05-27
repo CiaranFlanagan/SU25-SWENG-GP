@@ -14,6 +14,7 @@ const gameSchema = new Schema({
   // is reasonable to leave the chat field as a string and not an ObjectId ref
   chat: { type: String, required: true },
   players: { type: [{ type: Schema.Types.ObjectId, ref: 'User', required: true }], required: true },
+  history: { type: [{ type: Schema.Types.Mixed, required: true }], required: true },
   createdAt: { type: Date, required: true },
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 });
