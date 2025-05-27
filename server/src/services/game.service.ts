@@ -86,6 +86,7 @@ export async function createGame(
     createdAt,
     createdBy: user._id,
     players: [user._id],
+    history: [],
   });
 
   return populateGameInfo(game._id);
