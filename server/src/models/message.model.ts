@@ -7,6 +7,7 @@ const messageSchema = new Schema({
   text: { type: String, required: true },
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, required: true },
+  votes: { type: [Schema.Types.ObjectId], ref: 'Vote', required: true, default: [] },
 });
 
 /**

@@ -14,6 +14,7 @@ const threadSchema = new Schema({
     type: [{ type: Schema.Types.ObjectId, ref: 'Comment', required: true }],
     required: true,
   },
+  votes: { type: [Schema.Types.ObjectId], ref: 'Vote', required: true, default: [] },
 });
 
 /**
