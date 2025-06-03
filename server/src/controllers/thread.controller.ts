@@ -102,7 +102,7 @@ export const postByIdVote: RestAPI<ThreadInfo, { id: string }> = async (req, res
 
   const thread = await addVoteToThread(req.params.id, user, new Date());
   if (!thread) {
-    res.status(404).send({ error: 'Thread not found' });
+    res.status(404).send({ error: 'Failed to vote' });
     return;
   }
 
@@ -127,7 +127,7 @@ export const deleteByIdVote: RestAPI<ThreadInfo, { id: string }> = async (req, r
 
   const thread = await removeVoteFromThread(req.params.id, user);
   if (!thread) {
-    res.status(404).send({ error: 'Thread not found' });
+    res.status(404).send({ error: 'Failed to remove vote' });
     return;
   }
 

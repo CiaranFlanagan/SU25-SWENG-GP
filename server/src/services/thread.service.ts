@@ -115,6 +115,19 @@ export async function addVoteToThread(
   createdAt: Date,
 ): Promise<ThreadInfo | null> {
   if (!isValidObjectId(threadId)) return null;
+
+  const existingVote = await VoteModel.findOne({
+    createdBy: user._id,
+    itemType: 'Thread',
+    itemId: threadId,
+  });
+
+  if (existingVote) {
+    const thread = await ThreadModel.findById(threadId);
+    if (!thread) return null;
+    return await populateThreadInfo(thread._id);
+  }
+
   const thread = await ThreadModel.findByIdAndUpdate(threadId, {
     $push: {
       votes: await VoteModel.insertOne({

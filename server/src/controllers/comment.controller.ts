@@ -23,7 +23,7 @@ export const postByIdVote: RestAPI<CommentInfo, { id: string }> = async (req, re
 
   const comment = await addVoteToComment(req.params.id, user, new Date());
   if (!comment) {
-    res.status(404).send({ error: 'Comment not found' });
+    res.status(404).send({ error: 'Failed to vote' });
     return;
   }
 
@@ -48,7 +48,7 @@ export const deleteByIdVote: RestAPI<CommentInfo, { id: string }> = async (req, 
 
   const comment = await removeVoteFromComment(req.params.id, user);
   if (!comment) {
-    res.status(404).send({ error: 'Comment not found' });
+    res.status(404).send({ error: 'Failed to remove vote' });
     return;
   }
 

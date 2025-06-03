@@ -32,6 +32,19 @@ export async function addVoteToComment(
   createdAt: Date,
 ): Promise<CommentInfo | null> {
   if (!isValidObjectId(commentId)) return null;
+
+  const existingVote = await VoteModel.findOne({
+    createdBy: user._id,
+    itemType: 'Comment',
+    itemId: commentId,
+  });
+
+  if (existingVote) {
+    const comment = await CommentModel.findById(commentId);
+    if (!comment) return null;
+    return await populateCommentInfo(comment._id);
+  }
+
   const comment = await CommentModel.findByIdAndUpdate(commentId, {
     $push: {
       votes: await VoteModel.insertOne({
