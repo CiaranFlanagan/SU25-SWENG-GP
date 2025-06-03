@@ -28,6 +28,7 @@ describe('GET /api/thread/list', () => {
         display: 'Yāo',
         username: 'user1',
       },
+      votes: [],
     });
   });
 });
@@ -48,6 +49,7 @@ describe('GET /api/thread/:id', () => {
       comments: [],
       createdBy: { username: 'user1', display: 'Yāo', createdAt: expect.anything() },
       createdAt: new Date('2025-04-02').toISOString(),
+      votes: [],
     });
   });
 });
@@ -84,6 +86,7 @@ describe('POST /api/thread/create', () => {
         createdAt: expect.anything(),
       },
       comments: [],
+      votes: [],
     });
   });
 });
@@ -123,6 +126,7 @@ describe('POST /api/thread/:id/comment', () => {
         createdAt: expect.anything(),
         text: 'FIRST!',
         createdBy: { username: 'user2', display: 'Sénior Dos', createdAt: expect.anything() },
+        votes: [],
       },
     ]);
   });
