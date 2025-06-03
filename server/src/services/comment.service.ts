@@ -45,15 +45,17 @@ export async function addVoteToComment(
     return await populateCommentInfo(comment._id);
   }
 
+  const vote = await VoteModel.create({
+    createdBy: user._id,
+    vote: true,
+    createdAt,
+    itemType: 'Comment',
+    itemId: commentId,
+  });
+
   const comment = await CommentModel.findByIdAndUpdate(commentId, {
     $push: {
-      votes: await VoteModel.insertOne({
-        createdBy: user._id,
-        vote: true,
-        createdAt,
-        itemType: 'Comment',
-        itemId: commentId,
-      }),
+      votes: vote._id,
     },
   });
   if (!comment) return null;
@@ -71,13 +73,18 @@ export async function removeVoteFromComment(
   user: UserWithId,
 ): Promise<CommentInfo | null> {
   if (!isValidObjectId(commentId)) return null;
+
+  const deletedVote = await VoteModel.findOneAndDelete({
+    createdBy: user._id,
+    itemType: 'Comment',
+    itemId: commentId,
+  });
+
+  if (!deletedVote) return null;
+
   const comment = await CommentModel.findByIdAndUpdate(commentId, {
     $pull: {
-      votes: await VoteModel.findOneAndDelete({
-        createdBy: user._id,
-        itemType: 'Comment',
-        itemId: commentId,
-      }),
+      votes: deletedVote._id,
     },
   });
   if (!comment) return null;
