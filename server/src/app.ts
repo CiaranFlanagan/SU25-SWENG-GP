@@ -4,8 +4,9 @@ import express, { Router } from 'express';
 import * as http from 'node:http';
 import * as chat from './controllers/chat.controller.ts';
 import * as game from './controllers/game.controller.ts';
-import * as user from './controllers/user.controller.ts';
 import * as thread from './controllers/thread.controller.ts';
+import * as comment from './controllers/comment.controller.ts';
+import * as user from './controllers/user.controller.ts';
 import { type StrategyServer } from './types.ts';
 import { Server } from 'socket.io';
 import * as path from 'node:path';
@@ -37,7 +38,9 @@ app.use(
         .post('/create', thread.postCreate)
         .get('/list', thread.getList)
         .get('/:id', thread.getById)
-        .post('/:id/comment', thread.postByIdComment),
+        .post('/:id/comment', thread.postByIdComment)
+        .post('/:id/vote', thread.postByIdVote)
+        .delete('/:id/vote', thread.deleteByIdVote),
     )
     .use(
       '/user',
@@ -47,6 +50,13 @@ app.use(
         .post('/signup', user.postSignup)
         .post('/:username', user.postByUsername)
         .get('/:username', user.getByUsername),
+    )
+    .use(
+      '/comment',
+      express
+        .Router()
+        .post('/:id/vote', comment.postByIdVote)
+        .delete('/:id/vote', comment.deleteByIdVote),
     ),
 );
 

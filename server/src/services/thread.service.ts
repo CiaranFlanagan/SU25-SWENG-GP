@@ -12,6 +12,7 @@ import {
 } from '../models/thread.model.ts';
 import { isValidObjectId, Types } from 'mongoose';
 import { CommentModel } from '../models/comment.model.ts';
+import { VoteModel } from '../models/vote.model.ts';
 
 /**
  * Expand a stored thread
@@ -96,6 +97,59 @@ export async function addCommentToThread(
   if (!isValidObjectId(threadId)) return null;
   const thread = await ThreadModel.findByIdAndUpdate(threadId, {
     $push: { comments: await CommentModel.insertOne({ createdBy: user._id, text, createdAt }) },
+  });
+  if (!thread) return null;
+  return await populateThreadInfo(thread._id);
+}
+
+/**
+ * Add a vote to a thread
+ * @param threadId - Ostensible thread ID
+ * @param user - Voting user
+ * @param createdAt - Creation time for vote
+ * @returns the updated thread with vote attached, or null if the thread does not exist
+ */
+export async function addVoteToThread(
+  threadId: string,
+  user: UserWithId,
+  createdAt: Date,
+): Promise<ThreadInfo | null> {
+  if (!isValidObjectId(threadId)) return null;
+  const thread = await ThreadModel.findByIdAndUpdate(threadId, {
+    $push: {
+      votes: await VoteModel.insertOne({
+        createdBy: user._id,
+        vote: true,
+        createdAt,
+        itemType: 'Thread',
+        itemId: threadId,
+      }),
+    },
+  });
+
+  if (!thread) return null;
+  return await populateThreadInfo(thread._id);
+}
+
+/**
+ * Remove a vote from a thread
+ * @param threadId - Ostensible thread ID
+ * @param user - Voting user
+ * @returns the updated thread with vote removed, or null if the thread does not exist
+ */
+export async function removeVoteFromThread(
+  threadId: string,
+  user: UserWithId,
+): Promise<ThreadInfo | null> {
+  if (!isValidObjectId(threadId)) return null;
+  const thread = await ThreadModel.findByIdAndUpdate(threadId, {
+    $pull: {
+      votes: await VoteModel.findOneAndDelete({
+        createdBy: user._id,
+        itemType: 'Thread',
+        itemId: threadId,
+      }),
+    },
   });
   if (!thread) return null;
   return await populateThreadInfo(thread._id);

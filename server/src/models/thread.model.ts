@@ -2,6 +2,7 @@ import { type InferSchemaType, model, Schema, Types } from 'mongoose';
 import { type PopulateArgs } from '../types.ts';
 import { populateArgsForSafeUserInfo } from './user.model.ts';
 import { populateArgsForCommentInfo } from './comment.model.ts';
+import { populateArgsForVoteInfo } from './vote.model.ts';
 import { type ThreadInfo } from '@strategy-town/shared';
 
 export type ThreadRecord = InferSchemaType<typeof threadSchema>;
@@ -24,6 +25,7 @@ const threadSchema = new Schema({
  * - `createdAt`: when the thread was posted
  * - `createdBy`: username of OP
  * - `comments`: replies to the thread
+ * - `votes`: the votes on the thread
  */
 export const ThreadModel = model<ThreadRecord>('Thread', threadSchema);
 
@@ -36,10 +38,13 @@ export const populateArgsForThreadInfo: PopulateArgs = {
   populate: [
     { path: 'createdBy', ...populateArgsForSafeUserInfo },
     { path: 'comments', ...populateArgsForCommentInfo },
+    { path: 'votes', ...populateArgsForVoteInfo },
   ],
 };
 
-/** Like ThreadSummary, but has a list of ids instead of full comments */
+/**
+ * Like ThreadSummary, but has a list of ids instead of full comments
+ */
 export interface ThreadSummaryIsh extends Omit<ThreadInfo, 'text' | 'comments'> {
   comments: Types.ObjectId[];
 }

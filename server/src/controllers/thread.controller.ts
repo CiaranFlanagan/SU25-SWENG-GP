@@ -1,8 +1,10 @@
 import {
   addCommentToThread,
+  addVoteToThread,
   createThread,
   getThreadById,
   getThreadSummaries,
+  removeVoteFromThread,
 } from '../services/thread.service.ts';
 import { checkAuth } from '../services/user.service.ts';
 import {
@@ -73,6 +75,57 @@ export const postByIdComment: RestAPI<ThreadInfo, { id: string }> = async (req, 
   }
 
   const thread = await addCommentToThread(req.params.id, user, body.data.payload, new Date());
+  if (!thread) {
+    res.status(404).send({ error: 'Thread not found' });
+    return;
+  }
+
+  res.send(thread);
+};
+
+/**
+ * Handle POST requests to `/api/thread/:id/vote` that post a new
+ * vote to a thread.
+ */
+export const postByIdVote: RestAPI<ThreadInfo, { id: string }> = async (req, res) => {
+  const body = withAuth(z.object()).safeParse(req.body);
+  if (!body.success) {
+    res.status(400).send({ error: 'Poorly-formed request' });
+    return;
+  }
+
+  const user = await checkAuth(body.data.auth);
+  if (!user) {
+    res.status(403).send({ error: 'Invalid credentials' });
+    return;
+  }
+
+  const thread = await addVoteToThread(req.params.id, user, new Date());
+  if (!thread) {
+    res.status(404).send({ error: 'Thread not found' });
+    return;
+  }
+
+  res.send(thread);
+};
+
+/**
+ * Handle DELETE requests to `/api/thread/:id/vote` that remove a vote from a thread.
+ */
+export const deleteByIdVote: RestAPI<ThreadInfo, { id: string }> = async (req, res) => {
+  const body = withAuth(z.object()).safeParse(req.body);
+  if (!body.success) {
+    res.status(400).send({ error: 'Poorly-formed request' });
+    return;
+  }
+
+  const user = await checkAuth(body.data.auth);
+  if (!user) {
+    res.status(403).send({ error: 'Invalid credentials' });
+    return;
+  }
+
+  const thread = await removeVoteFromThread(req.params.id, user);
   if (!thread) {
     res.status(404).send({ error: 'Thread not found' });
     return;
