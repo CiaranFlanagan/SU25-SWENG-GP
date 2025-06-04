@@ -55,6 +55,8 @@ app.use(
       '/comment',
       express
         .Router()
+        .get('/list', comment.getList)
+        .get('/:id', comment.getById)
         .post('/:id/vote', comment.postByIdVote)
         .delete('/:id/vote', comment.deleteByIdVote),
     ),
