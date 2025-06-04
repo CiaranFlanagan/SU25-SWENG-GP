@@ -20,6 +20,32 @@ async function populateCommentInfo(_id: Types.ObjectId): Promise<CommentInfo> {
 }
 
 /**
+ * Get all comments
+ * @returns all comments in reverse chronological order
+ */
+export async function getComments(): Promise<CommentInfo[]> {
+  const comments = await CommentModel.find()
+    .select(populateArgsForCommentInfo.select)
+    .populate<CommentInfo>(populateArgsForCommentInfo.populate)
+    .sort({ createdAt: -1 })
+    .lean();
+
+  return comments.map(comment => ({ ...comment, votes: comment.votes.length }));
+}
+
+/**
+ * Get a single comment
+ * @param commentId - Ostensible comment ID
+ * @returns the comment, or null if the comment does not exist
+ */
+export async function getCommentById(commentId: string): Promise<CommentInfo | null> {
+  if (!isValidObjectId(commentId)) return null;
+  const comment = await CommentModel.findById(commentId);
+  if (!comment) return null;
+  return await populateCommentInfo(comment._id);
+}
+
+/**
  * Add a vote to a comment
  * @param commentId - Ostensible comment ID
  * @param user - Voting user
