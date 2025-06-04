@@ -7,6 +7,7 @@ import GameDispatch from '../games/GameDispatch.tsx';
 import useSocketsForGame from '../hooks/useSocketsForGame.ts';
 import { useEffect, useState } from 'react';
 import { getGameHistory } from '../services/gameService.ts';
+import UserLink from './UserLink.tsx';
 
 /**
  * A game panel allows viewing the status and players of a live game
@@ -89,9 +90,14 @@ export default function GamePanel({
         <div className='dottedList'>
           {players.map((player, index) => (
             <div className='dottedListItem' key={player.username}>
-              {player.username === user.username
-                ? `you are player #${index + 1}`
-                : `Player #${index + 1} is ${player.display}`}
+              {player.username === user.username ? (
+                `you are player #${index + 1}`
+              ) : (
+                <span>
+                  Player #{index + 1} is{' '}
+                  <UserLink username={player.username} displayName={player.display} />
+                </span>
+              )}
             </div>
           ))}
         </div>

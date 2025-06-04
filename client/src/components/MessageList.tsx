@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import useLoginContext from '../hooks/useLoginContext.ts';
 import { ChatMessage } from '../util/types.ts';
 import { useEffect, useRef } from 'react';
+import UserLink from './UserLink.tsx';
 
 interface MessageListProps {
   messages: ChatMessage[];
@@ -23,7 +24,11 @@ export default function MessageList({ messages }: MessageListProps) {
           if ('meta' in message) {
             return (
               <div key={message._id} className='chatMeta'>
-                {user.username === message.user.username ? 'you' : message.user.display}{' '}
+                {user.username === message.user.username ? (
+                  'you'
+                ) : (
+                  <UserLink username={message.user.username} displayName={message.user.display} />
+                )}{' '}
                 {message.meta}
                 {' chat '}
                 {dayjs(message.dateTime).fromNow()}
@@ -41,7 +46,11 @@ export default function MessageList({ messages }: MessageListProps) {
           return (
             <div key={message._id} className='chatOther'>
               <div className='chatSender'>
-                {message.createdBy.display} {dayjs(message.createdAt).fromNow()}
+                <UserLink
+                  username={message.createdBy.username}
+                  displayName={message.createdBy.display}
+                />{' '}
+                {dayjs(message.createdAt).fromNow()}
               </div>
               <div className='chatContent'>{message.text}</div>
             </div>

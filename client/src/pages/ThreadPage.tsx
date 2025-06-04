@@ -2,8 +2,9 @@ import './ThreadPage.css';
 import { useParams } from 'react-router-dom';
 import useThreadInfo from '../hooks/useThreadInfo.ts';
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import NewForumComment from '../components/NewForumComment.tsx';
+import UserLink from '../components/UserLink.tsx';
 
 export default function ThreadPage() {
   const { threadId } = useParams();
@@ -13,10 +14,7 @@ export default function ThreadPage() {
   const { threadInfo, setThread } = useThreadInfo(threadId!);
 
   // update 'now' when the threadInfo is updated
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    setNow(new Date());
-  }, [threadInfo]);
+  const [now] = useState(new Date());
 
   return (
     <div className='content'>
@@ -27,7 +25,12 @@ export default function ThreadPage() {
           <h2>{threadInfo.title}</h2>
           <div className='notTooWide'>{threadInfo.text}</div>
           <div className='smallAndGray'>
-            Posted by {threadInfo.createdBy.display} {dayjs(threadInfo.createdAt).from(now)}
+            Posted by{' '}
+            <UserLink
+              username={threadInfo.createdBy.username}
+              displayName={threadInfo.createdBy.display}
+            />{' '}
+            {dayjs(threadInfo.createdAt).from(now)}
           </div>
           <div className='dottedList'>
             {threadInfo.comments.map(({ _id, text, createdBy, createdAt, editedAt }) => (
@@ -35,7 +38,8 @@ export default function ThreadPage() {
                 <div>
                   <div>{text}</div>
                   <div className='smallAndGray'>
-                    Reply by {createdBy.display}
+                    Reply by{' '}
+                    <UserLink username={createdBy.username} displayName={createdBy.display} />{' '}
                     {createdBy.username === threadInfo.createdBy.username && (
                       <span className='opBlue'> OP</span>
                     )}{' '}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { ThreadSummary } from '@strategy-town/shared';
 import { useState } from 'react';
+import UserLink from './UserLink.tsx';
 
 /**
  * Summarizes information for a single thread as part of a list of threads
@@ -24,7 +25,8 @@ export default function ThreadSummaryView({
       </div>
       <div className='mid'>{title}</div>
       <div className='lastActivity'>
-        {createdBy.display} posted {dayjs(createdAt).from(now)}
+        <UserLink username={createdBy.username} displayName={createdBy.display} /> posted{' '}
+        {dayjs(createdAt).from(now)}
       </div>
     </div>
   );
