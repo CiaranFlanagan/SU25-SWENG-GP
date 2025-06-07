@@ -112,36 +112,37 @@ export default function GamePanel({
           )
         }
       </div>
-      {isDone /* && gameHistory.length > 0 */ && ( //dealing with gameHistory.length later
-        <div className='historyControls'>
-          <div className='gameFinishedHeader'>
-            <strong>Game Finished - Review History</strong>
-          </div>
-          <div className='smallAndGray'>
-            {isViewingHistory
-              ? `Viewing move ${currentHistoryIndex + 1} of ${gameHistory.length}`
-              : 'Final game state'}
-          </div>
-          <div className='historyButtons'>
-            <button
-              className='secondary narrow'
-              onClick={handlePrevMove}
-              disabled={isViewingHistory && currentHistoryIndex === 0}>
-              ← Prev
-            </button>
-            <button className='secondary narrow' onClick={handleNextMove}>
-              {isViewingHistory && currentHistoryIndex < gameHistory.length - 1
-                ? 'Next →'
-                : 'Final →'}
-            </button>
-            {isViewingHistory && (
-              <button className='primary narrow' onClick={handleBackToCurrent}>
-                Back to Final
+      {isDone &&
+        userPlayerIndex >= 0 /* && gameHistory.length > 0 */ && ( //dealing with gameHistory.length later
+          <div className='historyControls'>
+            <div className='gameFinishedHeader'>
+              <strong>Game Finished - Review History</strong>
+            </div>
+            <div className='smallAndGray'>
+              {isViewingHistory
+                ? `Viewing move ${currentHistoryIndex + 1} of ${gameHistory.length}`
+                : 'Final game state'}
+            </div>
+            <div className='historyButtons'>
+              <button
+                className='secondary narrow'
+                onClick={handlePrevMove}
+                disabled={isViewingHistory && currentHistoryIndex === 0}>
+                ← Prev
               </button>
-            )}
+              <button className='secondary narrow' onClick={handleNextMove}>
+                {isViewingHistory && currentHistoryIndex < gameHistory.length - 1
+                  ? 'Next →'
+                  : 'Final →'}
+              </button>
+              {isViewingHistory && (
+                <button className='primary narrow' onClick={handleBackToCurrent}>
+                  Back to Final
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
       {view ? (
         <div className='gameFrame'>
           <GameDispatch
