@@ -1,23 +1,17 @@
 import { APIResponse } from '../util/types.ts';
 import { api, exceptionToErrorMsg } from './api.ts';
-import {
-  CommentInfo,
-  ErrorMsg,
-  UserAuth,
-} from '@strategy-town/shared';
+import { CommentInfo, ErrorMsg, UserAuth } from '@strategy-town/shared';
 
 const COMMENT_API_URL = `/api/comment`;
 
 /**
  * Sends a POST request to vote on a comment
  */
-export const voteOnComment = async (
-  auth: UserAuth,
-  id: string,
-): APIResponse<CommentInfo> => {
+export const voteOnComment = async (auth: UserAuth, id: string): APIResponse<CommentInfo> => {
   try {
     const res = await api.post<CommentInfo | ErrorMsg>(`${COMMENT_API_URL}/${id}/vote`, {
       auth,
+      payload: {},
     });
     return res.data;
   } catch (error) {
@@ -34,7 +28,7 @@ export const removeVoteFromComment = async (
 ): APIResponse<CommentInfo> => {
   try {
     const res = await api.delete<CommentInfo | ErrorMsg>(`${COMMENT_API_URL}/${id}/vote`, {
-      data: { auth },
+      data: { auth, payload: {} },
     });
     return res.data;
   } catch (error) {
