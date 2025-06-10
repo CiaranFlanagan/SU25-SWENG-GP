@@ -60,7 +60,7 @@ app.use(
         .post('/:id/vote', comment.postByIdVote)
         .delete('/:id/vote', comment.deleteByIdVote),
     )
-    .use('/chat', Router().post('create', chat.makeChat)),
+    .use('/chat', express.Router().post('/private', chat.postPrivate)),
 );
 
 io.on('connection', socket => {

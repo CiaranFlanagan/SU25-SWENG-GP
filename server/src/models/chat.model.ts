@@ -9,6 +9,10 @@ const chatSchema = new Schema({
     required: true,
   },
   createdAt: { type: Date, required: true },
+  participants: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    default: undefined,
+  },
 });
 
 /**

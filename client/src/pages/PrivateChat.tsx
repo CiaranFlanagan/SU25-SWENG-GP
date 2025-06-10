@@ -2,9 +2,10 @@ import { useState } from 'react';
 import ChatPanel from '../components/ChatPanel.tsx';
 import useLoginContext from '../hooks/useLoginContext.ts';
 import { api } from '../services/api.ts';
+import { ChatInfo } from '@strategy-town/shared';
 
 export default function PrivateChat() {
-  const { user } = useLoginContext();
+  const { user, pass } = useLoginContext();
   const [search, setSearch] = useState('');
   type UserResult = { username: string; display?: string };
   const [results, setResults] = useState<UserResult[]>([]);
@@ -35,12 +36,25 @@ export default function PrivateChat() {
     }
   }
 
-  function startChatWith(username: string) {
-    setErr(null);
-    const chatId = [user.username, username].sort().join('-');
-    setChatId(chatId);
-    setSearch('');
-    setResults([]);
+  async function startChatWith(username: string) {
+    try {
+      setLoading(true);
+      setErr(null);
+
+      const { data } = await api.post<ChatInfo>('/api/chat/private', {
+        auth: {
+          username: user.username,
+          password: pass,
+        },
+        payload: { username },
+      });
+
+      setChatId(data._id);
+    } catch {
+      setErr('Could not open chat');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
