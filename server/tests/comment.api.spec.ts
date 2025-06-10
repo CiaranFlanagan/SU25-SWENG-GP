@@ -27,7 +27,7 @@ describe('GET /api/comment/list', () => {
       },
       createdAt: expect.anything(),
       text: 'Exciting',
-      votes: 0,
+      votes: [],
     });
   });
 });

@@ -90,7 +90,7 @@ describe('GET /api/game/list', () => {
       },
       {
         type: 'guess',
-        status: 'active',
+        status: 'done',
         players: [
           { username: 'user1' },
           { username: 'user0' },
