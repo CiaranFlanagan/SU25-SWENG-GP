@@ -43,8 +43,8 @@ export default function ThreadPage() {
     if (!('error' in result)) {
       // Update the thread with the new comment data
       if (!('message' in threadInfo)) {
-        const updatedComments = threadInfo.comments.map(comment => 
-          comment._id === commentId ? result : comment
+        const updatedComments = threadInfo.comments.map(comment =>
+          comment._id === commentId ? result : comment,
         );
         setThread({ ...threadInfo, comments: updatedComments });
       }
@@ -57,8 +57,8 @@ export default function ThreadPage() {
     if (!('error' in result)) {
       // Update the thread with the new comment data
       if (!('message' in threadInfo)) {
-        const updatedComments = threadInfo.comments.map(comment => 
-          comment._id === commentId ? result : comment
+        const updatedComments = threadInfo.comments.map(comment =>
+          comment._id === commentId ? result : comment,
         );
         setThread({ ...threadInfo, comments: updatedComments });
       }
@@ -75,7 +75,7 @@ export default function ThreadPage() {
             <VoteButton
               votes={threadInfo.votes || []}
               itemId={threadInfo._id}
-              itemType="Thread"
+              itemType='Thread'
               onVote={handleThreadVote}
               onRemoveVote={handleThreadRemoveVote}
             />
@@ -99,7 +99,7 @@ export default function ThreadPage() {
                   <VoteButton
                     votes={votes || []}
                     itemId={_id}
-                    itemType="Comment"
+                    itemType='Comment'
                     onVote={handleCommentVote}
                     onRemoveVote={handleCommentRemoveVote}
                   />
