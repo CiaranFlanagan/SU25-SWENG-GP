@@ -46,6 +46,14 @@ export default function ThreadPage() {
         <div className='spacedSection'>
           <h2>{threadInfo.title}</h2>
           <div className='notTooWide'>{threadInfo.text}</div>
+          <div>
+            <button onClick={() => submitVote(threadInfo._id, true, 'thread')}>👍</button>
+            <span className='scoreNumber'>
+              {threadInfo.votes.filter(v => v.vote).length -
+                threadInfo.votes.filter(v => !v.vote).length}
+            </span>
+            <button onClick={() => submitVote(threadInfo._id, false, 'thread')}>👎</button>
+          </div>
           <div className='smallAndGray'>
             Posted by {threadInfo.createdBy.display} {dayjs(threadInfo.createdAt).from(now)}
           </div>

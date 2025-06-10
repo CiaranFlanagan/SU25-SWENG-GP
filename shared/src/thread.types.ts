@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { type SafeUserInfo } from './user.types.ts';
 import { type CommentInfo } from './comment.types.ts';
+import type { VoteInfo } from './vote.types.ts';
 
 /**
  * Represents a forum post as exposed to the client. In our code, we call
@@ -20,6 +21,7 @@ export interface ThreadInfo {
   createdAt: Date;
   createdBy: SafeUserInfo;
   comments: CommentInfo[];
+  votes: [VoteInfo];
 }
 
 /**
