@@ -59,7 +59,8 @@ app.use(
         .get('/:id', comment.getById)
         .post('/:id/vote', comment.postByIdVote)
         .delete('/:id/vote', comment.deleteByIdVote),
-    ),
+    )
+    .use('/chat', Router().post('create', chat.makeChat)),
 );
 
 io.on('connection', socket => {
