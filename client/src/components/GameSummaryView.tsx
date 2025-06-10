@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gameNames } from '../util/consts.ts';
+import UserLink from './UserLink.tsx';
 
 /**
  * Summarizes information for a single game as part of a list of games
@@ -27,7 +28,8 @@ export default function GameSummaryView({
       </div>
       <div className='mid'>A game of {gameNames[type]}</div>
       <div className='lastActivity'>
-        {createdBy.display} created {dayjs(createdAt).from(now)}
+        <UserLink username={createdBy.username} displayName={createdBy.display} /> created{' '}
+        {dayjs(createdAt).from(now)}
       </div>
     </div>
   );

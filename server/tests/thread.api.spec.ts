@@ -131,3 +131,96 @@ describe('POST /api/thread/:id/comment', () => {
     ]);
   });
 });
+
+describe('POST /api/thread/:id/vote', () => {
+  const vote = { auth: auth2, payload: {} };
+
+  it('should return 400 on on ill-formed payload', async () => {
+    response = await supertest(app)
+      .post(`/api/thread/deadbeefdeadbeefdeadbeef/vote`)
+      .send({ auth: auth1, payload: 4 });
+    expect(response.status).toBe(400);
+  });
+
+  it('should return 404 on a bad id', async () => {
+    response = await supertest(app).post(`/api/thread/${randomUUID().toString()}/vote`).send(vote);
+    expect(response.status).toBe(404);
+  });
+
+  it('should return 403 with bad auth', async () => {
+    response = await supertest(app)
+      .post(`/api/thread/deadbeefdeadbeefdeadbeef/vote`)
+      .send({ ...vote, auth: { ...auth1, username: 'user1', password: 'no' } });
+    expect(response.status).toBe(403);
+  });
+
+  it('should succeed with correct information if the thread id exists', async () => {
+    response = await supertest(app).post(`/api/thread/deadbeefdeadbeefdeadbeef/vote`).send(vote);
+    expect(response.status).toBe(200);
+    expect(response.body?.votes).toStrictEqual([
+      {
+        _id: expect.anything(),
+        createdAt: expect.anything(),
+        itemId: 'deadbeefdeadbeefdeadbeef',
+        itemType: 'Thread',
+        createdBy: { username: 'user2', display: 'Sénior Dos', createdAt: expect.anything() },
+        vote: true,
+      },
+    ]);
+  });
+
+  it('should not add a duplicate vote if the user already voted on the thread once', async () => {
+    // first time
+    const response1 = await supertest(app)
+      .post(`/api/thread/deadbeefdeadbeefdeadbeef/vote`)
+      .send(vote);
+    expect(response1.status).toBe(200);
+
+    // second time
+    const response2 = await supertest(app)
+      .post(`/api/thread/deadbeefdeadbeefdeadbeef/vote`)
+      .send(vote);
+    expect(response2.status).toBe(200);
+
+    // # of votes should still be 1 since there shouldn't be a duplicate vote
+    expect(response2.body?.votes).toHaveLength(1);
+    // then since another vote shouldn't have been added, the vote id should still be the same
+    expect(response2.body.votes[0]._id).toBe(response1.body.votes[0]._id);
+  });
+});
+
+describe('DELETE /api/thread/:id/vote', () => {
+  const vote = { auth: auth2, payload: {} };
+
+  it('should return 400 on on ill-formed payload', async () => {
+    response = await supertest(app)
+      .delete(`/api/thread/deadbeefdeadbeefdeadbeef/vote`)
+      .send({ auth: auth1, payload: 4 });
+    expect(response.status).toBe(400);
+  });
+
+  it('should return 404 on a bad id', async () => {
+    response = await supertest(app)
+      .delete(`/api/thread/${randomUUID().toString()}/vote`)
+      .send(vote);
+    expect(response.status).toBe(404);
+  });
+
+  it('should return 403 with bad auth', async () => {
+    response = await supertest(app)
+      .delete(`/api/thread/deadbeefdeadbeefdeadbeef/vote`)
+      .send({ ...vote, auth: { ...auth1, username: 'user1', password: 'no' } });
+    expect(response.status).toBe(403);
+  });
+
+  it('should succeed with correct information when adding a vote first than deleting it', async () => {
+    // post to add a vote first
+    response = await supertest(app).post(`/api/thread/deadbeefdeadbeefdeadbeef/vote`).send(vote);
+    expect(response.status).toBe(200);
+
+    // then delete the vote
+    response = await supertest(app).delete(`/api/thread/deadbeefdeadbeefdeadbeef/vote`).send(vote);
+    expect(response.status).toBe(200);
+    expect(response.body?.votes).toStrictEqual([]);
+  });
+});
