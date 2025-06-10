@@ -14,6 +14,7 @@ import { getGameHistory } from '../services/gameService.ts';
 export default function GamePanel({
   _id,
   type,
+  status,
   players: initialPlayers,
   createdAt,
   minPlayers,
@@ -28,7 +29,7 @@ export default function GamePanel({
   const [gameHistory, setGameHistory] = useState<unknown[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState<number>(-1); // -1 means current state
   const [isViewingHistory, setIsViewingHistory] = useState(false);
-  const isDone = true; //gonna figure this out later
+  const isDone = status === 'done';
 
   // fetching game History when isDone is true
   useEffect(() => {
@@ -112,37 +113,43 @@ export default function GamePanel({
           )
         }
       </div>
-      {isDone &&
-        userPlayerIndex >= 0 /* && gameHistory.length > 0 */ && ( //dealing with gameHistory.length later
-          <div className='historyControls'>
-            <div className='gameFinishedHeader'>
-              <strong>Game Finished - Review History</strong>
-            </div>
-            <div className='smallAndGray'>
-              {isViewingHistory
-                ? `Viewing move ${currentHistoryIndex + 1} of ${gameHistory.length}`
-                : 'Final game state'}
-            </div>
-            <div className='historyButtons'>
-              <button
-                className='secondary narrow'
-                onClick={handlePrevMove}
-                disabled={isViewingHistory && currentHistoryIndex === 0}>
-                ← Prev
-              </button>
-              <button className='secondary narrow' onClick={handleNextMove}>
-                {isViewingHistory && currentHistoryIndex < gameHistory.length - 1
-                  ? 'Next →'
-                  : 'Final →'}
-              </button>
-              {isViewingHistory && (
-                <button className='primary narrow' onClick={handleBackToCurrent}>
-                  Back to Final
-                </button>
-              )}
-            </div>
+      {/* 1) if the game is done but we’re not yet in replay mode… */}
+      {isDone && userPlayerIndex >= 0 && !isViewingHistory && (
+        <button
+          className='primary narrow'
+          onClick={() => {
+            // jump to the last move and flip into “replay” UI
+            setCurrentHistoryIndex(gameHistory.length - 1);
+            setIsViewingHistory(true);
+          }}>
+          Replay moves
+        </button>
+      )}
+      {/* 2) once isViewingHistory === true, show your full Prev/Next controls */}
+      {isDone && userPlayerIndex >= 0 && isViewingHistory && (
+        <div className='historyControls'>
+          <div className='gameFinishedHeader'>
+            <strong>Game Finished – Review History</strong>
           </div>
-        )}
+          <div className='smallAndGray'>
+            Viewing move {currentHistoryIndex + 1} of {gameHistory.length}
+          </div>
+          <div className='historyButtons'>
+            <button
+              className='secondary narrow'
+              onClick={handlePrevMove}
+              disabled={currentHistoryIndex === 0}>
+              ← Prev
+            </button>
+            <button className='secondary narrow' onClick={handleNextMove}>
+              {currentHistoryIndex < gameHistory.length - 1 ? 'Next →' : 'Final →'}
+            </button>
+            <button className='primary narrow' onClick={handleBackToCurrent}>
+              Back to Final
+            </button>
+          </div>
+        </div>
+      )}
       {view ? (
         <div className='gameFrame'>
           <GameDispatch
