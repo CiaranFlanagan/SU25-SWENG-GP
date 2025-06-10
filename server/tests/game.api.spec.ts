@@ -177,14 +177,14 @@ describe('POST /api/game/:id/history', () => {
     // Use the pre-seeded nim game that is done and has history
     // From mongo.ts, there's a nim game with user2 and user3 that is done
     response = await supertest(app).get('/api/game/list');
-    const doneNimGame = response.body.find(
-      (game: { type: string; status: string }) => game.type === 'nim' && game.status === 'done',
+    const doneNimGame = (response.body as { _id: string; type: string; status: string }[]).find(
+      game => game.type === 'nim' && game.status === 'done',
     );
     expect(doneNimGame).toBeDefined();
 
     // Get history for the done game as user3 (who is a player)
     response = await supertest(app)
-      .post(`/api/game/${doneNimGame._id}/history`)
+      .post(`/api/game/${doneNimGame!._id}/history`)
       .send({ auth: auth3, payload: {} });
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);

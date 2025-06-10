@@ -35,8 +35,12 @@ export default function PrivateChat() {
     }
   }
 
-  async function startChatWith(username: string) {
-
+  function startChatWith(username: string) {
+    setErr(null);
+    const chatId = [user.username, username].sort().join('-');
+    setChatId(chatId);
+    setSearch('');
+    setResults([]);
   }
 
   return (
