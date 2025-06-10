@@ -43,9 +43,9 @@ export default function ThreadPage() {
     if (!('error' in result)) {
       // Update the thread with the new comment data
       if (!('message' in threadInfo)) {
-        const updatedComments = threadInfo.comments.map(comment =>
-          comment._id === commentId ? result : comment,
-        );
+        const updatedComments = threadInfo.comments
+          .map(comment => (comment._id === commentId ? result : comment))
+          .sort((a, b) => b.votes.length - a.votes.length);
         setThread({ ...threadInfo, comments: updatedComments });
       }
     }
@@ -57,9 +57,9 @@ export default function ThreadPage() {
     if (!('error' in result)) {
       // Update the thread with the new comment data
       if (!('message' in threadInfo)) {
-        const updatedComments = threadInfo.comments.map(comment =>
-          comment._id === commentId ? result : comment,
-        );
+        const updatedComments = threadInfo.comments
+          .map(comment => (comment._id === commentId ? result : comment))
+          .sort((a, b) => b.votes.length - a.votes.length);
         setThread({ ...threadInfo, comments: updatedComments });
       }
     }
