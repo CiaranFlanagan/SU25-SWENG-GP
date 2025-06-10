@@ -58,6 +58,41 @@ export async function populateMongo() {
     },
   ]);
 
+  const [yes1, yes2, no1, yes3] = [
+    {
+      _id: new Object('64a1f4eac3a0b2c123456789'),
+      vote: true,
+      itemType: 'Comment',
+      itemId: 'yes1',
+      createdBy: user0,
+      createdAt: new Date(),
+    },
+    {
+      _id: 'idyes2',
+      vote: true,
+      itemType: 'Comment',
+      itemId: 'yes2',
+      createdBy: user1,
+      createdAt: new Date(),
+    },
+    {
+      _id: 'idno1',
+      vote: false,
+      itemType: 'Comment',
+      itemId: 'no1',
+      createdBy: user3,
+      createdAt: new Date(),
+    },
+    {
+      _id: 'idyes3',
+      vote: true,
+      itemType: 'Comment',
+      itemId: 'yes3',
+      createdBy: user2,
+      createdAt: new Date(),
+    },
+  ];
+
   await ThreadModel.insertMany([
     {
       _id: new Types.ObjectId('abadcafeabadcafeabadcafe'),
@@ -81,7 +116,12 @@ export async function populateMongo() {
       title: 'Other games?',
       text: "Nim is great, but I'm hoping some new strategy games will get introduced soon.",
       comments: await CommentModel.insertMany([
-        { createdBy: user0, createdAt: daysAgo(5.9), text: "I'm working on this, stay tuned!" },
+        {
+          createdBy: user0,
+          createdAt: daysAgo(5.9),
+          text: "I'm working on this, stay tuned!",
+          votes: [yes1],
+        },
         { createdBy: user3, createdAt: daysAgo(5.8), text: "Excited to see what's in store!" },
       ]),
     },
