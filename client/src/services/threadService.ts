@@ -70,3 +70,37 @@ export const createThread = async (
     return exceptionToErrorMsg(error);
   }
 };
+
+/**
+ * Sends a POST request to vote on a thread
+ */
+export const voteOnThread = async (
+  auth: UserAuth,
+  id: string,
+): APIResponse<ThreadInfo> => {
+  try {
+    const res = await api.post<ThreadInfo | ErrorMsg>(`${THREAD_API_URL}/${id}/vote`, {
+      auth,
+    });
+    return res.data;
+  } catch (error) {
+    return exceptionToErrorMsg(error);
+  }
+};
+
+/**
+ * Sends a DELETE request to remove vote from a thread
+ */
+export const removeVoteFromThread = async (
+  auth: UserAuth,
+  id: string,
+): APIResponse<ThreadInfo> => {
+  try {
+    const res = await api.delete<ThreadInfo | ErrorMsg>(`${THREAD_API_URL}/${id}/vote`, {
+      data: { auth },
+    });
+    return res.data;
+  } catch (error) {
+    return exceptionToErrorMsg(error);
+  }
+};
