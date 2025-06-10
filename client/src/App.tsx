@@ -18,7 +18,7 @@ import ThreadPage from './pages/ThreadPage.tsx';
 import { ErrorBoundary } from 'react-error-boundary';
 import fallback from './fallback.tsx';
 import NewThread from './pages/NewThread.tsx';
-
+import PrivateChat from './pages/PrivateChat.tsx';
 /** If `true`, all incoming socket messages will be logged */
 const DEBUG_SOCKETS = false;
 
@@ -67,6 +67,7 @@ export default function App() {
             <Route path='/game/:gameId' element={<Game />} />
             <Route path='/profile/:username' element={<Profile />} />
             <Route path='/*' element={<NoSuchRoute />} />
+            <Route path='/chat' element={<PrivateChat />} />
           </Route>
         </Routes>
       </BrowserRouter>

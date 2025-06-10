@@ -30,6 +30,9 @@ export default function SideBarNav() {
       <NavLink to='/forum' className={navClass}>
         Forum
       </NavLink>
+      <NavLink to='/chat' className={navClass}>
+        Chat
+      </NavLink>
       <NavLink
         to={`/profile/${username}`}
         id='menu_user'
