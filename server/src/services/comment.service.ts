@@ -30,7 +30,7 @@ export async function getComments(): Promise<CommentInfo[]> {
     .sort({ createdAt: -1 })
     .lean();
 
-  return comments.map(comment => ({ ...comment, votes: comment.votes }));
+  return comments.map(comment => ({ ...comment }));
 }
 
 /**
