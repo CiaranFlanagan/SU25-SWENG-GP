@@ -7,8 +7,23 @@ import GameDispatch from '../games/GameDispatch.tsx';
 import useSocketsForGame from '../hooks/useSocketsForGame.ts';
 import { useEffect, useState } from 'react';
 import { getGameHistory } from '../services/gameService.ts';
+import useAuth from '../hooks/useAuth.ts';
 import UserLink from './UserLink.tsx';
 import { buildHistoryViews } from '../games/replay.ts';
+
+function isGameCompleteFromView(view: TaggedGameView | null): boolean {
+  if (!view) return false;
+
+  switch (view.type) {
+    case 'nim':
+      return view.view.remaining === 0;
+    case 'guess':
+      // For guess game, check if secret is revealed (only happens when all players have guessed)
+      return 'secret' in view.view && view.view.secret !== undefined;
+    default:
+      return false;
+  }
+}
 
 /**
  * A game panel allows viewing the status and players of a live game
@@ -22,6 +37,7 @@ export default function GamePanel({
   minPlayers,
 }: GameInfo) {
   const { user } = useLoginContext();
+  const auth = useAuth();
 
   const { view, players, userPlayerIndex, hasWatched, joinGame, startGame } = useSocketsForGame(
     _id,
@@ -32,38 +48,41 @@ export default function GamePanel({
   const [historyViews, setHistoryViews] = useState<TaggedGameView[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState<number>(-1); // -1 means current state
   const [isViewingHistory, setIsViewingHistory] = useState(false);
-  const isDone = status === 'done';
+  const isDone = status === 'done' || isGameCompleteFromView(view);
 
   // fetching game History when isDone is true
   useEffect(() => {
     if (isDone && userPlayerIndex >= 0) {
       const fetchHistory = async () => {
         try {
-          const response = await getGameHistory(_id);
+          const response = await getGameHistory(_id, auth);
           if ('error' in response) return;
+          console.log('Game history response:', response);
           setGameHistory(response);
-          setHistoryViews(buildHistoryViews(type, response as { move: number }[]));
+          const views = buildHistoryViews(type, response as { move: unknown }[]);
+          console.log('Built history views:', views);
+          setHistoryViews(views);
         } catch (error) {
           return;
         }
       };
       fetchHistory();
     }
-  }, [_id, isDone, userPlayerIndex, type]);
+  }, [_id, isDone, userPlayerIndex, type, auth]);
 
   useEffect(() => {
     if (gameHistory.length > 0) {
-      setHistoryViews(buildHistoryViews(type, gameHistory as { move: number }[]));
+      setHistoryViews(buildHistoryViews(type, gameHistory as { move: unknown }[]));
     }
   }, [gameHistory, type]);
 
   // going to the previous move in history
   const handlePrevMove = () => {
-    if (gameHistory.length === 0) return;
+    if (historyViews.length === 0) return;
 
     const newIndex = isViewingHistory
       ? Math.max(0, currentHistoryIndex - 1)
-      : gameHistory.length - 1;
+      : historyViews.length - 1;
 
     setCurrentHistoryIndex(newIndex);
     setIsViewingHistory(true);
@@ -71,9 +90,9 @@ export default function GamePanel({
 
   // going to the next move in history
   const handleNextMove = () => {
-    if (gameHistory.length === 0) return;
+    if (historyViews.length === 0) return;
 
-    if (currentHistoryIndex >= gameHistory.length - 1) {
+    if (currentHistoryIndex >= historyViews.length - 1) {
       // Go back to current state
       setIsViewingHistory(false);
       setCurrentHistoryIndex(-1);
@@ -135,7 +154,7 @@ export default function GamePanel({
           className='primary narrow'
           onClick={() => {
             // jump to the last move and flip into “replay” UI
-            setCurrentHistoryIndex(gameHistory.length - 1);
+            setCurrentHistoryIndex(historyViews.length - 1);
             setIsViewingHistory(true);
           }}>
           Replay moves
@@ -148,7 +167,7 @@ export default function GamePanel({
             <strong>Game Finished – Review History</strong>
           </div>
           <div className='smallAndGray'>
-            Viewing move {currentHistoryIndex + 1} of {gameHistory.length}
+            Viewing move {currentHistoryIndex + 1} of {historyViews.length}
           </div>
           <div className='historyButtons'>
             <button
@@ -158,7 +177,7 @@ export default function GamePanel({
               ← Prev
             </button>
             <button className='secondary narrow' onClick={handleNextMove}>
-              {currentHistoryIndex < gameHistory.length - 1 ? 'Next →' : 'Final →'}
+              {currentHistoryIndex < historyViews.length - 1 ? 'Next →' : 'Final →'}
             </button>
             <button className='primary narrow' onClick={handleBackToCurrent}>
               Back to Final
