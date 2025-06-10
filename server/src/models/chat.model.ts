@@ -15,8 +15,6 @@ const chatSchema = new Schema({
   },
 });
 
-chatSchema.index({ participants: 1 }, { unique: true, sparse: true });
-
 /**
  * Represents a chat document in the database.
  * - `messages`: the ordered list of messages in the chat
