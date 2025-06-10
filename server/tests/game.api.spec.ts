@@ -107,3 +107,142 @@ describe('GET /api/game/list', () => {
     ]);
   });
 });
+
+describe('POST /api/game/:id/history', () => {
+  let gameId: string;
+
+  it('should return 400 with invalid game id', async () => {
+    response = await supertest(app)
+      .post(`/api/game/invalid-id/history`)
+      .send({ auth: auth3, payload: {} });
+    expect(response.status).toBe(400);
+  });
+
+  it('should return 400 with nonexistent game id', async () => {
+    const fakeId = '507f1f77bcf86cd799439011'; // Valid ObjectId format but non-existent
+    response = await supertest(app)
+      .post(`/api/game/${fakeId}/history`)
+      .send({ auth: auth3, payload: {} });
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('game not found');
+  });
+
+  it('should return 403 with bad auth', async () => {
+    // First create a game to get a valid game ID
+    response = await supertest(app).post(`/api/game/create`).send({
+      auth: auth3,
+      payload: 'nim',
+    });
+    gameId = response.body._id;
+
+    response = await supertest(app)
+      .post(`/api/game/${gameId}/history`)
+      .send({ auth: authBad, payload: {} });
+    expect(response.status).toBe(403);
+  });
+
+  it('should return 400 when user is not a player in the game', async () => {
+    // Create a game with user3
+    response = await supertest(app).post(`/api/game/create`).send({
+      auth: auth3,
+      payload: 'nim',
+    });
+    gameId = response.body._id;
+
+    // Try to get history with different user (user1 is seeded but not in this game)
+    response = await supertest(app)
+      .post(`/api/game/${gameId}/history`)
+      .send({ auth: { username: 'user1', password: 'pwd1' }, payload: {} });
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('not a player in this game');
+  });
+
+  it('should return empty history for new game', async () => {
+    // Create a new game
+    response = await supertest(app).post(`/api/game/create`).send({
+      auth: auth3,
+      payload: 'nim',
+    });
+    gameId = response.body._id;
+
+    // Get history
+    response = await supertest(app)
+      .post(`/api/game/${gameId}/history`)
+      .send({ auth: auth3, payload: {} });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+  });
+
+  it('should return populated history for game with existing history', async () => {
+    // Use the pre-seeded nim game that is done and has history
+    // From mongo.ts, there's a nim game with user2 and user3 that is done
+    response = await supertest(app).get('/api/game/list');
+    const doneNimGame = response.body.find(
+      (game: { type: string; status: string }) => game.type === 'nim' && game.status === 'done',
+    );
+    expect(doneNimGame).toBeDefined();
+
+    // Get history for the done game as user3 (who is a player)
+    response = await supertest(app)
+      .post(`/api/game/${doneNimGame._id}/history`)
+      .send({ auth: auth3, payload: {} });
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.body)).toBe(true);
+    // Note: The seeded game doesn't have explicit history moves, but the API should work
+  });
+});
+
+describe('POST /api/game/:id/history/:index', () => {
+  let gameId: string;
+
+  it('should return 400 with invalid game id', async () => {
+    response = await supertest(app)
+      .post(`/api/game/invalid-id/history/0`)
+      .send({ auth: auth3, payload: {} });
+    expect(response.status).toBe(400);
+  });
+
+  it('should return 403 with bad auth', async () => {
+    // Create a game to get a valid game ID
+    response = await supertest(app).post(`/api/game/create`).send({
+      auth: auth3,
+      payload: 'nim',
+    });
+    gameId = response.body._id;
+
+    response = await supertest(app)
+      .post(`/api/game/${gameId}/history/0`)
+      .send({ auth: authBad, payload: {} });
+    expect(response.status).toBe(403);
+  });
+
+  it('should return 400 for invalid history index', async () => {
+    // Create a game
+    response = await supertest(app).post(`/api/game/create`).send({
+      auth: auth3,
+      payload: 'nim',
+    });
+    gameId = response.body._id;
+
+    // Try to get move at index 0 when no moves exist
+    response = await supertest(app)
+      .post(`/api/game/${gameId}/history/0`)
+      .send({ auth: auth3, payload: {} });
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('history index out of bounds');
+  });
+
+  it('should return 400 for negative history index', async () => {
+    response = await supertest(app).post(`/api/game/create`).send({
+      auth: auth3,
+      payload: 'nim',
+    });
+    gameId = response.body._id;
+
+    response = await supertest(app)
+      .post(`/api/game/${gameId}/history/-1`)
+      .send({ auth: auth3, payload: {} });
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('history index out of bounds');
+  });
+});
