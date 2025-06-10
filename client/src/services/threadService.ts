@@ -74,7 +74,11 @@ export const createThread = async (
 /**
  * Sends a POST request to vote on a thread
  */
-export const voteOnThread = async (auth: UserAuth, id: string): APIResponse<ThreadInfo> => {
+export const voteOnThread = async (
+  auth: UserAuth,
+  id: string,
+  payload: string,
+): APIResponse<ThreadInfo> => {
   try {
     const res = await api.post<ThreadInfo | ErrorMsg>(`${THREAD_API_URL}/${id}/vote`, {
       auth,
