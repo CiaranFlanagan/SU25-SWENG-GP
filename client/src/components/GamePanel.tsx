@@ -1,5 +1,5 @@
 import './GamePanel.css';
-import { GameInfo } from '@strategy-town/shared';
+import { GameInfo, TaggedGameView } from '@strategy-town/shared';
 import { gameNames } from '../util/consts.ts';
 import useLoginContext from '../hooks/useLoginContext.ts';
 import dayjs from 'dayjs';
@@ -7,6 +7,7 @@ import GameDispatch from '../games/GameDispatch.tsx';
 import useSocketsForGame from '../hooks/useSocketsForGame.ts';
 import { useEffect, useState } from 'react';
 import { getGameHistory } from '../services/gameService.ts';
+import { buildHistoryViews } from '../games/replay.ts';
 
 /**
  * A game panel allows viewing the status and players of a live game
@@ -27,6 +28,7 @@ export default function GamePanel({
   );
 
   const [gameHistory, setGameHistory] = useState<unknown[]>([]);
+  const [historyViews, setHistoryViews] = useState<TaggedGameView[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState<number>(-1); // -1 means current state
   const [isViewingHistory, setIsViewingHistory] = useState(false);
   const isDone = status === 'done';
@@ -39,13 +41,20 @@ export default function GamePanel({
           const response = await getGameHistory(_id);
           if ('error' in response) return;
           setGameHistory(response);
+          setHistoryViews(buildHistoryViews(type, response as { move: number }[]));
         } catch (error) {
           return;
         }
       };
       fetchHistory();
     }
-  }, [_id, isDone, userPlayerIndex]);
+  }, [_id, isDone, userPlayerIndex, type]);
+
+  useEffect(() => {
+    if (gameHistory.length > 0) {
+      setHistoryViews(buildHistoryViews(type, gameHistory as { move: number }[]));
+    }
+  }, [gameHistory, type]);
 
   // going to the previous move in history
   const handlePrevMove = () => {
@@ -78,9 +87,10 @@ export default function GamePanel({
     setCurrentHistoryIndex(-1);
   };
 
-  //game state of whether viewing history or playing game, will do late also
-  // const gameStateToShow =
-  //   isViewingHistory && gameHistory[currentHistoryIndex] ? gameHistory[currentHistoryIndex] : view;
+  const gameStateToShow: TaggedGameView | null =
+    isViewingHistory && historyViews[currentHistoryIndex]
+      ? historyViews[currentHistoryIndex]
+      : view;
 
   return hasWatched ? (
     <div className='gamePanel'>
@@ -150,13 +160,13 @@ export default function GamePanel({
           </div>
         </div>
       )}
-      {view ? (
+      {view && gameStateToShow ? (
         <div className='gameFrame'>
           <GameDispatch
             gameId={_id}
             userPlayerIndex={userPlayerIndex}
             players={players}
-            view={view} //implementing later of viewing game history instead
+            view={gameStateToShow}
             isViewingHistory={isViewingHistory}
           />
         </div>
