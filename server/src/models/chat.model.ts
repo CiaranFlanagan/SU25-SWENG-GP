@@ -9,7 +9,13 @@ const chatSchema = new Schema({
     required: true,
   },
   createdAt: { type: Date, required: true },
+  participants: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    default: undefined,
+  },
 });
+
+chatSchema.index({ participants: 1 }, { unique: true, sparse: true });
 
 /**
  * Represents a chat document in the database.

@@ -5,7 +5,9 @@ import { addMessageToChat, forceChatById } from '../services/chat.service.ts';
 import { enforceAuth, populateSafeUserInfo } from '../services/user.service.ts';
 import { createMessage, populateMessageInfo } from '../services/message.service.ts';
 import { logSocketError } from './socket.controller.ts';
-import { createChat } from '../services/chat.service.ts';
+import { getOrCreatePrivateChat } from '../services/chat.service.ts';
+import { UserModel } from '../models/user.model.ts';
+const zCreateDM = withAuth(z.object({ username: z.string() }));
 
 /**
  * Handle a socket request to join a chat: send the connection the chat's
@@ -72,7 +74,16 @@ export const socketSendMessage: SocketAPI = (socket, io) => async body => {
   }
 };
 
-export const makeChat: RestAPI = async (req, res) => {
-  const chat = await createChat(new Date());
+export const postPrivate: RestAPI = async (req, res) => {
+  const { auth, payload } = zCreateDM.parse(req.body);
+  const user = await enforceAuth(auth);
+
+  const other = await UserModel.findOne({ username: payload.username });
+  if (!other) {
+    res.status(404).send({ error: 'user not found' });
+    return;
+  }
+
+  const chat = await getOrCreatePrivateChat(user._id, other._id);
   res.send(chat);
 };

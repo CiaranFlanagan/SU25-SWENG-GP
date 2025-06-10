@@ -43,9 +43,11 @@ export async function createChat(createdAt: Date): Promise<ChatInfo> {
  */
 export async function forceChatById(chatId: string, user: UserWithId): Promise<ChatInfo> {
   if (!isValidObjectId(chatId)) throw new Error(`user ${user.username} accessed invalid chat id`);
-  const chat = await ChatModel.findById(new Types.ObjectId(chatId));
+  const chat = await ChatModel.findById(chatId);
   if (!chat) throw new Error(`user ${user.username} accessed invalid chat id`);
-
+  if (chat.participants?.length && !chat.participants.some(p => p.equals(user._id))) {
+    throw new Error(`user ${user.username} tried to join DM they are not part of`);
+  }
   return populateChatInfo(chat._id);
 }
 
@@ -68,5 +70,16 @@ export async function addMessageToChat(
     $push: { messages: message },
   });
   if (!chat) throw new Error(`user ${user.username} sent to invalid chat id`);
+  return await populateChatInfo(chat._id);
+}
+
+export async function getOrCreatePrivateChat(
+  a: Types.ObjectId,
+  b: Types.ObjectId,
+): Promise<ChatInfo> {
+  const pair = [a, b].sort();
+  let chat = await ChatModel.findOne({ participants: pair });
+  if (!chat)
+    chat = await ChatModel.create({ messages: [], createdAt: new Date(), participants: pair });
   return await populateChatInfo(chat._id);
 }

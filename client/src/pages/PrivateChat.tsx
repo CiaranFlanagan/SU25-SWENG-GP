@@ -2,6 +2,8 @@ import { useState } from 'react';
 import ChatPanel from '../components/ChatPanel.tsx';
 import useLoginContext from '../hooks/useLoginContext.ts';
 import { api } from '../services/api.ts';
+import { ChatInfo } from '@strategy-town/shared';
+import { authHeader } from '../util/auth.ts';
 
 export default function PrivateChat() {
   const { user } = useLoginContext();
@@ -36,7 +38,18 @@ export default function PrivateChat() {
   }
 
   async function startChatWith(username: string) {
-
+    try {
+      setLoading(true);
+      const { data } = await api.post<ChatInfo>('/api/chat/private', {
+        auth: authHeader(),
+        payload: { username },
+      });
+      setChatId(data._id);
+    } catch {
+      setErr('Could not open chat');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

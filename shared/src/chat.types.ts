@@ -23,6 +23,7 @@ export interface ChatInfo {
   _id: string;
   messages: MessageInfo[];
   createdAt: Date;
+  participants?: SafeUserInfo[];
 }
 
 /*** TYPES USED IN THE CHAT API ***/
