@@ -55,5 +55,8 @@ export interface ThreadSummaryIsh extends Omit<ThreadInfo, 'text' | 'comments'> 
  */
 export const populateArgsForThreadSummaryIsh: PopulateArgs = {
   select: '-__v -text',
-  populate: [{ path: 'createdBy', ...populateArgsForSafeUserInfo }],
+  populate: [
+    { path: 'createdBy', ...populateArgsForSafeUserInfo },
+    { path: 'votes', ...populateArgsForVoteInfo },
+  ],
 };

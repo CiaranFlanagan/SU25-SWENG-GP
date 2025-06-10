@@ -2,3 +2,25 @@ span.opBlue {
   color: oklch(0.55 0.2 260);
   font-weight: 800;
 }
+
+.thread-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.thread-content {
+  flex: 1;
+}
+
+.comment-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.comment-content {
+  flex: 1;
+}
