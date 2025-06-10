@@ -81,7 +81,12 @@ export async function populateMongo() {
       title: 'Other games?',
       text: "Nim is great, but I'm hoping some new strategy games will get introduced soon.",
       comments: await CommentModel.insertMany([
-        { createdBy: user0, createdAt: daysAgo(5.9), text: "I'm working on this, stay tuned!" },
+        {
+          _id: new Types.ObjectId('deadceefdeadceefdeadceef'),
+          createdBy: user0,
+          createdAt: daysAgo(5.9),
+          text: "I'm working on this, stay tuned!",
+        },
         { createdBy: user3, createdAt: daysAgo(5.8), text: "Excited to see what's in store!" },
       ]),
     },
