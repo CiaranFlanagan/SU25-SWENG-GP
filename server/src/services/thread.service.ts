@@ -42,7 +42,7 @@ export async function createThread(
   { title, text }: CreateThreadMessage,
   createdAt: Date,
 ): Promise<ThreadInfo> {
-  const thread = await ThreadModel.insertOne({
+  const thread = await ThreadModel.create({
     title,
     text,
     createdAt,
@@ -95,8 +95,17 @@ export async function addCommentToThread(
   createdAt: Date,
 ): Promise<ThreadInfo | null> {
   if (!isValidObjectId(threadId)) return null;
+
+  const comment = await CommentModel.create({
+    createdBy: user._id,
+    text,
+    createdAt,
+  });
+
   const thread = await ThreadModel.findByIdAndUpdate(threadId, {
-    $push: { comments: await CommentModel.insertOne({ createdBy: user._id, text, createdAt }) },
+    $push: {
+      comments: comment._id,
+    },
   });
   if (!thread) return null;
   return await populateThreadInfo(thread._id);
@@ -115,15 +124,30 @@ export async function addVoteToThread(
   createdAt: Date,
 ): Promise<ThreadInfo | null> {
   if (!isValidObjectId(threadId)) return null;
+
+  const existingVote = await VoteModel.findOne({
+    createdBy: user._id,
+    itemType: 'Thread',
+    itemId: threadId,
+  });
+
+  if (existingVote) {
+    const thread = await ThreadModel.findById(threadId);
+    if (!thread) return null;
+    return await populateThreadInfo(thread._id);
+  }
+
+  const vote = await VoteModel.create({
+    createdBy: user._id,
+    vote: true,
+    createdAt,
+    itemType: 'Thread',
+    itemId: threadId,
+  });
+
   const thread = await ThreadModel.findByIdAndUpdate(threadId, {
     $push: {
-      votes: await VoteModel.insertOne({
-        createdBy: user._id,
-        vote: true,
-        createdAt,
-        itemType: 'Thread',
-        itemId: threadId,
-      }),
+      votes: vote._id,
     },
   });
 
@@ -142,13 +166,18 @@ export async function removeVoteFromThread(
   user: UserWithId,
 ): Promise<ThreadInfo | null> {
   if (!isValidObjectId(threadId)) return null;
+
+  const deletedVote = await VoteModel.findOneAndDelete({
+    createdBy: user._id,
+    itemType: 'Thread',
+    itemId: threadId,
+  });
+
+  if (!deletedVote) return null;
+
   const thread = await ThreadModel.findByIdAndUpdate(threadId, {
     $pull: {
-      votes: await VoteModel.findOneAndDelete({
-        createdBy: user._id,
-        itemType: 'Thread',
-        itemId: threadId,
-      }),
+      votes: deletedVote._id,
     },
   });
   if (!thread) return null;

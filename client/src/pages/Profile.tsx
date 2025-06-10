@@ -1,14 +1,40 @@
 import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import useLoginContext from '../hooks/useLoginContext.ts';
+import useUserProfile from '../hooks/useUserProfile.ts';
 import dayjs from 'dayjs';
 import useEditProfileForm from '../hooks/useEditProfileForm.ts';
+import ProfileView from '../components/ProfileView.tsx';
 
 export default function Profile() {
-  const { user } = useLoginContext();
+  const { username: routeUsername } = useParams<{ username: string }>();
+  const { user: currentUser } = useLoginContext();
   const [now] = useState(new Date());
   const [showPass, setShowPass] = useState(false);
+
+  const isOwnProfile = routeUsername === currentUser.username;
+
+  const { user: otherUser, loading, error } = useUserProfile(routeUsername || '');
+
   const { display, setDisplay, password, setPassword, confirm, setConfirm, err, handleSubmit } =
     useEditProfileForm();
+
+  if (!isOwnProfile && loading) {
+    return <div className='content'>Loading profile...</div>;
+  }
+
+  if (!isOwnProfile && error) {
+    return (
+      <div className='content'>
+        <h2>Profile Not Found</h2>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  if (!isOwnProfile && otherUser) {
+    return <ProfileView user={otherUser} />;
+  }
 
   return (
     <form className='content spacedSection' onSubmit={handleSubmit}>
@@ -16,8 +42,8 @@ export default function Profile() {
       <div>
         <h3>General information</h3>
         <ul>
-          <li>Username: {user.username}</li>
-          <li>Account created {dayjs(user.createdAt).from(now)}</li>
+          <li>Username: {currentUser.username}</li>
+          <li>Account created {dayjs(currentUser.createdAt).from(now)}</li>
         </ul>
       </div>
       <hr />
@@ -28,12 +54,13 @@ export default function Profile() {
             className='widefill notTooWide'
             value={display}
             onChange={e => setDisplay(e.target.value)}
+            autoComplete='name'
           />
           <button
             className='secondary narrow'
             onClick={e => {
               e.preventDefault(); // Don't submit form
-              setDisplay(user.display);
+              setDisplay(currentUser.display);
             }}>
             Reset
           </button>
@@ -49,6 +76,7 @@ export default function Profile() {
             placeholder='New password'
             value={password}
             onChange={e => setPassword(e.target.value)}
+            autoComplete='new-password'
           />
           <button
             className='secondary narrow'
@@ -76,6 +104,7 @@ export default function Profile() {
             placeholder='Confirm new password'
             value={confirm}
             onChange={e => setConfirm(e.target.value)}
+            autoComplete='new-password'
           />
         </div>
       </div>

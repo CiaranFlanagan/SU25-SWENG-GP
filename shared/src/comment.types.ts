@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { type SafeUserInfo } from './user.types.ts';
-import type { VoteInfo } from './vote.types.ts';
+import { type VoteInfo } from './vote.types.ts';
 
 /**
  * Represents a forum comment as exposed to the client
@@ -17,7 +17,7 @@ export interface CommentInfo {
   createdBy: SafeUserInfo;
   createdAt: Date;
   editedAt?: Date;
-  votes: [VoteInfo];
+  votes: VoteInfo[];
 }
 
 /*** TYPES USED IN THE COMMENT API ***/

@@ -1,5 +1,5 @@
 import './GamePanel.css';
-import { GameInfo } from '@strategy-town/shared';
+import { GameInfo, TaggedGameView } from '@strategy-town/shared';
 import { gameNames } from '../util/consts.ts';
 import useLoginContext from '../hooks/useLoginContext.ts';
 import dayjs from 'dayjs';
@@ -7,6 +7,8 @@ import GameDispatch from '../games/GameDispatch.tsx';
 import useSocketsForGame from '../hooks/useSocketsForGame.ts';
 import { useEffect, useState } from 'react';
 import { getGameHistory } from '../services/gameService.ts';
+import UserLink from './UserLink.tsx';
+import { buildHistoryViews } from '../games/replay.ts';
 
 /**
  * A game panel allows viewing the status and players of a live game
@@ -14,6 +16,7 @@ import { getGameHistory } from '../services/gameService.ts';
 export default function GamePanel({
   _id,
   type,
+  status,
   players: initialPlayers,
   createdAt,
   minPlayers,
@@ -26,9 +29,10 @@ export default function GamePanel({
   );
 
   const [gameHistory, setGameHistory] = useState<unknown[]>([]);
+  const [historyViews, setHistoryViews] = useState<TaggedGameView[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState<number>(-1); // -1 means current state
   const [isViewingHistory, setIsViewingHistory] = useState(false);
-  const isDone = true; //gonna figure this out later
+  const isDone = status === 'done';
 
   // fetching game History when isDone is true
   useEffect(() => {
@@ -38,13 +42,20 @@ export default function GamePanel({
           const response = await getGameHistory(_id);
           if ('error' in response) return;
           setGameHistory(response);
+          setHistoryViews(buildHistoryViews(type, response as { move: number }[]));
         } catch (error) {
           return;
         }
       };
       fetchHistory();
     }
-  }, [_id, isDone, userPlayerIndex]);
+  }, [_id, isDone, userPlayerIndex, type]);
+
+  useEffect(() => {
+    if (gameHistory.length > 0) {
+      setHistoryViews(buildHistoryViews(type, gameHistory as { move: number }[]));
+    }
+  }, [gameHistory, type]);
 
   // going to the previous move in history
   const handlePrevMove = () => {
@@ -77,9 +88,10 @@ export default function GamePanel({
     setCurrentHistoryIndex(-1);
   };
 
-  //game state of whether viewing history or playing game, will do late also
-  // const gameStateToShow =
-  //   isViewingHistory && gameHistory[currentHistoryIndex] ? gameHistory[currentHistoryIndex] : view;
+  const gameStateToShow: TaggedGameView | null =
+    isViewingHistory && historyViews[currentHistoryIndex]
+      ? historyViews[currentHistoryIndex]
+      : view;
 
   return hasWatched ? (
     <div className='gamePanel'>
@@ -89,9 +101,14 @@ export default function GamePanel({
         <div className='dottedList'>
           {players.map((player, index) => (
             <div className='dottedListItem' key={player.username}>
-              {player.username === user.username
-                ? `you are player #${index + 1}`
-                : `Player #${index + 1} is ${player.display}`}
+              {player.username === user.username ? (
+                `you are player #${index + 1}`
+              ) : (
+                <span>
+                  Player #{index + 1} is{' '}
+                  <UserLink username={player.username} displayName={player.display} />
+                </span>
+              )}
             </div>
           ))}
         </div>
@@ -112,43 +129,50 @@ export default function GamePanel({
           )
         }
       </div>
-      {isDone /* && gameHistory.length > 0 */ && ( //dealing with gameHistory.length later
+      {/* 1) if the game is done but we’re not yet in replay mode… */}
+      {isDone && userPlayerIndex >= 0 && !isViewingHistory && (
+        <button
+          className='primary narrow'
+          onClick={() => {
+            // jump to the last move and flip into “replay” UI
+            setCurrentHistoryIndex(gameHistory.length - 1);
+            setIsViewingHistory(true);
+          }}>
+          Replay moves
+        </button>
+      )}
+      {/* 2) once isViewingHistory === true, show your full Prev/Next controls */}
+      {isDone && userPlayerIndex >= 0 && isViewingHistory && (
         <div className='historyControls'>
           <div className='gameFinishedHeader'>
-            <strong>Game Finished - Review History</strong>
+            <strong>Game Finished – Review History</strong>
           </div>
           <div className='smallAndGray'>
-            {isViewingHistory
-              ? `Viewing move ${currentHistoryIndex + 1} of ${gameHistory.length}`
-              : 'Final game state'}
+            Viewing move {currentHistoryIndex + 1} of {gameHistory.length}
           </div>
           <div className='historyButtons'>
             <button
               className='secondary narrow'
               onClick={handlePrevMove}
-              disabled={isViewingHistory && currentHistoryIndex === 0}>
+              disabled={currentHistoryIndex === 0}>
               ← Prev
             </button>
             <button className='secondary narrow' onClick={handleNextMove}>
-              {isViewingHistory && currentHistoryIndex < gameHistory.length - 1
-                ? 'Next →'
-                : 'Final →'}
+              {currentHistoryIndex < gameHistory.length - 1 ? 'Next →' : 'Final →'}
             </button>
-            {isViewingHistory && (
-              <button className='primary narrow' onClick={handleBackToCurrent}>
-                Back to Final
-              </button>
-            )}
+            <button className='primary narrow' onClick={handleBackToCurrent}>
+              Back to Final
+            </button>
           </div>
         </div>
       )}
-      {view ? (
+      {view && gameStateToShow ? (
         <div className='gameFrame'>
           <GameDispatch
             gameId={_id}
             userPlayerIndex={userPlayerIndex}
             players={players}
-            view={view} //implementing later of viewing game history instead
+            view={gameStateToShow}
             isViewingHistory={isViewingHistory}
           />
         </div>

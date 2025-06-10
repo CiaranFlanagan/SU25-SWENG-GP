@@ -2,41 +2,68 @@ import './ThreadPage.css';
 import { useParams } from 'react-router-dom';
 import useThreadInfo from '../hooks/useThreadInfo.ts';
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import NewForumComment from '../components/NewForumComment.tsx';
+import UserLink from '../components/UserLink.tsx';
+import VoteButton from '../components/VoteButton.tsx';
+import { voteOnThread, removeVoteFromThread } from '../services/threadService.ts';
+import { voteOnComment, removeVoteFromComment } from '../services/commentService.ts';
+import useAuth from '../hooks/useAuth.ts';
 
 export default function ThreadPage() {
   const { threadId } = useParams();
+  const auth = useAuth();
 
   // non-nullish assertion is okay here given that Thread is only called in a
   // route with `:threadId` on the path
   const { threadInfo, setThread } = useThreadInfo(threadId!);
 
   // update 'now' when the threadInfo is updated
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    setNow(new Date());
-  }, [threadInfo]);
+  const [now] = useState(new Date());
 
-  type VotableType = 'comment' | 'thread';
-
-  async function submitVote(id: string, vote: boolean, type: VotableType): Promise<void> {
-    const res = await fetch(`/api/${type}/${id}/vote`, {
-      method: vote ? 'POST' : 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        auth: {
-          username: 'user0', // TODO: replace with real auth
-          password: 'pwd0',
-        },
-        payload: {},
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to ${vote ? 'add' : 'remove'} vote: ${await res.text()}`);
+  const handleThreadVote = async (id: string) => {
+    if (!auth) return;
+    const result = await voteOnThread(auth, id);
+    if (!('error' in result)) {
+      setThread(result);
     }
-  }
+  };
+
+  const handleThreadRemoveVote = async (id: string) => {
+    if (!auth) return;
+    const result = await removeVoteFromThread(auth, id);
+    if (!('error' in result)) {
+      setThread(result);
+    }
+  };
+
+  const handleCommentVote = async (commentId: string) => {
+    if (!auth) return;
+    const result = await voteOnComment(auth, commentId);
+    if (!('error' in result)) {
+      // Update the thread with the new comment data
+      if (!('message' in threadInfo)) {
+        const updatedComments = threadInfo.comments.map(comment => 
+          comment._id === commentId ? result : comment
+        );
+        setThread({ ...threadInfo, comments: updatedComments });
+      }
+    }
+  };
+
+  const handleCommentRemoveVote = async (commentId: string) => {
+    if (!auth) return;
+    const result = await removeVoteFromComment(auth, commentId);
+    if (!('error' in result)) {
+      // Update the thread with the new comment data
+      if (!('message' in threadInfo)) {
+        const updatedComments = threadInfo.comments.map(comment => 
+          comment._id === commentId ? result : comment
+        );
+        setThread({ ...threadInfo, comments: updatedComments });
+      }
+    }
+  };
 
   return (
     <div className='content'>
@@ -44,34 +71,43 @@ export default function ThreadPage() {
         threadInfo.message
       ) : (
         <div className='spacedSection'>
-          <h2>{threadInfo.title}</h2>
-          <div className='notTooWide'>{threadInfo.text}</div>
-          <div>
-            <button onClick={() => submitVote(threadInfo._id, true, 'thread')}>👍</button>
-            <span className='scoreNumber'>
-              {threadInfo.votes.filter(v => v.vote).length -
-                threadInfo.votes.filter(v => !v.vote).length}
-            </span>
-            <button onClick={() => submitVote(threadInfo._id, false, 'thread')}>👎</button>
-          </div>
-          <div className='smallAndGray'>
-            Posted by {threadInfo.createdBy.display} {dayjs(threadInfo.createdAt).from(now)}
+          <div className='thread-header'>
+            <VoteButton
+              votes={threadInfo.votes || []}
+              itemId={threadInfo._id}
+              itemType="Thread"
+              onVote={handleThreadVote}
+              onRemoveVote={handleThreadRemoveVote}
+            />
+            <div className='thread-content'>
+              <h2>{threadInfo.title}</h2>
+              <div className='notTooWide'>{threadInfo.text}</div>
+              <div className='smallAndGray'>
+                Posted by{' '}
+                <UserLink
+                  username={threadInfo.createdBy.username}
+                  displayName={threadInfo.createdBy.display}
+                />{' '}
+                {dayjs(threadInfo.createdAt).from(now)}
+              </div>
+            </div>
           </div>
           <div className='dottedList'>
-            {threadInfo.comments.map(({ _id, text, createdBy, createdAt, editedAt, votes }) => {
-              return (
-                <div className='dottedListItem' key={_id}>
-                  <div>
+            {threadInfo.comments.map(({ _id, text, createdBy, createdAt, editedAt, votes }) => (
+              <div className='dottedListItem' key={_id}>
+                <div className='comment-container'>
+                  <VoteButton
+                    votes={votes || []}
+                    itemId={_id}
+                    itemType="Comment"
+                    onVote={handleCommentVote}
+                    onRemoveVote={handleCommentRemoveVote}
+                  />
+                  <div className='comment-content'>
                     <div>{text}</div>
-                    <div className='voteScoreDisplay'>
-                      <button onClick={() => submitVote(_id, true, 'comment')}>👍</button>
-                      <span className='scoreNumber'>
-                        {votes.filter(v => v.vote).length - votes.filter(v => !v.vote).length}
-                      </span>
-                      <button onClick={() => submitVote(_id, false, 'comment')}>👎</button>
-                    </div>
                     <div className='smallAndGray'>
-                      Reply by {createdBy.display}
+                      Reply by{' '}
+                      <UserLink username={createdBy.username} displayName={createdBy.display} />{' '}
                       {createdBy.username === threadInfo.createdBy.username && (
                         <span className='opBlue'> OP</span>
                       )}{' '}
@@ -80,8 +116,8 @@ export default function ThreadPage() {
                     </div>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
           <NewForumComment
             firstPost={threadInfo.comments.length === 0}

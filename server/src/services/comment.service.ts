@@ -20,6 +20,32 @@ async function populateCommentInfo(_id: Types.ObjectId): Promise<CommentInfo> {
 }
 
 /**
+ * Get all comments
+ * @returns all comments in reverse chronological order
+ */
+export async function getComments(): Promise<CommentInfo[]> {
+  const comments = await CommentModel.find()
+    .select(populateArgsForCommentInfo.select)
+    .populate<CommentInfo>(populateArgsForCommentInfo.populate)
+    .sort({ createdAt: -1 })
+    .lean();
+
+  return comments.map(comment => ({ ...comment, votes: comment.votes.length }));
+}
+
+/**
+ * Get a single comment
+ * @param commentId - Ostensible comment ID
+ * @returns the comment, or null if the comment does not exist
+ */
+export async function getCommentById(commentId: string): Promise<CommentInfo | null> {
+  if (!isValidObjectId(commentId)) return null;
+  const comment = await CommentModel.findById(commentId);
+  if (!comment) return null;
+  return await populateCommentInfo(comment._id);
+}
+
+/**
  * Add a vote to a comment
  * @param commentId - Ostensible comment ID
  * @param user - Voting user
@@ -32,15 +58,30 @@ export async function addVoteToComment(
   createdAt: Date,
 ): Promise<CommentInfo | null> {
   if (!isValidObjectId(commentId)) return null;
+
+  const existingVote = await VoteModel.findOne({
+    createdBy: user._id,
+    itemType: 'Comment',
+    itemId: commentId,
+  });
+
+  if (existingVote) {
+    const comment = await CommentModel.findById(commentId);
+    if (!comment) return null;
+    return await populateCommentInfo(comment._id);
+  }
+
+  const vote = await VoteModel.create({
+    createdBy: user._id,
+    vote: true,
+    createdAt,
+    itemType: 'Comment',
+    itemId: commentId,
+  });
+
   const comment = await CommentModel.findByIdAndUpdate(commentId, {
     $push: {
-      votes: await VoteModel.insertOne({
-        createdBy: user._id,
-        vote: true,
-        createdAt,
-        itemType: 'Comment',
-        itemId: commentId,
-      }),
+      votes: vote._id,
     },
   });
   if (!comment) return null;
@@ -58,13 +99,18 @@ export async function removeVoteFromComment(
   user: UserWithId,
 ): Promise<CommentInfo | null> {
   if (!isValidObjectId(commentId)) return null;
+
+  const deletedVote = await VoteModel.findOneAndDelete({
+    createdBy: user._id,
+    itemType: 'Comment',
+    itemId: commentId,
+  });
+
+  if (!deletedVote) return null;
+
   const comment = await CommentModel.findByIdAndUpdate(commentId, {
     $pull: {
-      votes: await VoteModel.findOneAndDelete({
-        createdBy: user._id,
-        itemType: 'Comment',
-        itemId: commentId,
-      }),
+      votes: deletedVote._id,
     },
   });
   if (!comment) return null;

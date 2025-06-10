@@ -1,8 +1,35 @@
 import { withAuth, type CommentInfo } from '@strategy-town/shared';
 import { checkAuth } from '../services/user.service.ts';
 import type { RestAPI } from '../types.ts';
-import { addVoteToComment, removeVoteFromComment } from '../services/comment.service.ts';
+import {
+  addVoteToComment,
+  getCommentById,
+  getComments,
+  removeVoteFromComment,
+} from '../services/comment.service.ts';
 import { z } from 'zod';
+
+/**
+ * Handle GET requests to `/api/comment/list`. Returns all comments in reverse
+ * chronological order by creation.
+ */
+export const getList: RestAPI<CommentInfo[]> = async (req, res) => {
+  res.send(await getComments());
+};
+
+/**
+ * Handle GET requests to `/api/comment/:id`. Returns either 404 or a comment
+ * info object.
+ */
+export const getById: RestAPI<CommentInfo, { id: string }> = async (req, res) => {
+  const comment = await getCommentById(req.params.id);
+  if (!comment) {
+    res.status(404).send({ error: 'Comment not found' });
+    return;
+  }
+
+  res.send(comment);
+};
 
 /**
  * Handle POST requests to `/api/comment/:id/vote` that post a new
@@ -23,7 +50,7 @@ export const postByIdVote: RestAPI<CommentInfo, { id: string }> = async (req, re
 
   const comment = await addVoteToComment(req.params.id, user, new Date());
   if (!comment) {
-    res.status(404).send({ error: 'Comment not found' });
+    res.status(404).send({ error: 'Failed to vote' });
     return;
   }
 
@@ -48,7 +75,7 @@ export const deleteByIdVote: RestAPI<CommentInfo, { id: string }> = async (req, 
 
   const comment = await removeVoteFromComment(req.params.id, user);
   if (!comment) {
-    res.status(404).send({ error: 'Comment not found' });
+    res.status(404).send({ error: 'Failed to remove vote' });
     return;
   }
 
