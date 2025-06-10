@@ -21,7 +21,7 @@ function buildGuessViews(history: { move: unknown }[]): TaggedGameView[] {
   const views: TaggedGameView[] = [];
   const guesses: (number | null)[] = new Array<number | null>(history.length).fill(null);
 
-  for (let i = 0; i < history.length; i = i + 1) {
+  for (let i = 0; i < history.length; i += 1) {
     const entry = history[i];
     const move = typeof entry?.move === 'number' ? entry.move : 0;
     guesses[i] = move;
