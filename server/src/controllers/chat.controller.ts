@@ -1,10 +1,11 @@
 import { withAuth, zNewMessageRequest } from '@strategy-town/shared';
-import { type SocketAPI } from '../types.ts';
+import { type RestAPI, type SocketAPI } from '../types.ts';
 import { z } from 'zod';
 import { addMessageToChat, forceChatById } from '../services/chat.service.ts';
 import { enforceAuth, populateSafeUserInfo } from '../services/user.service.ts';
 import { createMessage, populateMessageInfo } from '../services/message.service.ts';
 import { logSocketError } from './socket.controller.ts';
+import { createChat } from '../services/chat.service.ts';
 
 /**
  * Handle a socket request to join a chat: send the connection the chat's
@@ -69,4 +70,9 @@ export const socketSendMessage: SocketAPI = (socket, io) => async body => {
   } catch (err) {
     logSocketError(socket, err);
   }
+};
+
+export const makeChat: RestAPI = async (req, res) => {
+  const chat = await createChat(new Date());
+  res.send(chat);
 };
