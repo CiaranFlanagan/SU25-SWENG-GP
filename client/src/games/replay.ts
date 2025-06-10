@@ -20,23 +20,21 @@ function buildNimViews(history: { move: unknown }[]): TaggedGameView[] {
 function buildGuessViews(history: { move: unknown }[]): TaggedGameView[] {
   const views: TaggedGameView[] = [];
   const guesses: (number | null)[] = new Array(history.length).fill(null);
-  
+
   for (let i = 0; i < history.length; i++) {
     const entry = history[i];
     const move = typeof entry?.move === 'number' ? entry.move : 0;
     guesses[i] = move;
-    
+
     // Create view showing progression of guesses
     // For replay, we can show all guesses as they come in
     const currentGuesses = [...guesses];
-    
-    views.push({ 
-      type: 'guess', 
-      view: { 
-        guesses: currentGuesses.map((guess, idx) => 
-          idx <= i && guess !== null ? guess : false
-        )
-      } 
+
+    views.push({
+      type: 'guess',
+      view: {
+        guesses: currentGuesses.map((guess, idx) => (idx <= i && guess !== null ? guess : false)),
+      },
     });
   }
 
