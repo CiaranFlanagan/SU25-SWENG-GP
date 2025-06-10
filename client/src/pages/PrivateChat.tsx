@@ -5,7 +5,7 @@ import { api } from '../services/api.ts';
 import { ChatInfo } from '@strategy-town/shared';
 
 export default function PrivateChat() {
-  const { user } = useLoginContext();
+  const { user, pass } = useLoginContext();
   const [search, setSearch] = useState('');
   type UserResult = { username: string; display?: string };
   const [results, setResults] = useState<UserResult[]>([]);
@@ -44,7 +44,7 @@ export default function PrivateChat() {
       const { data } = await api.post<ChatInfo>('/api/chat/private', {
         auth: {
           username: user.username,
-          password: //do not know what to do here right now
+          password: pass,
         },
         payload: { username },
       });
