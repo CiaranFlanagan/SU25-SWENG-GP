@@ -2,6 +2,7 @@
 
 import express, { Router } from 'express';
 import * as http from 'node:http';
+import cors from 'cors';
 import * as chat from './controllers/chat.controller.ts';
 import * as game from './controllers/game.controller.ts';
 import * as thread from './controllers/thread.controller.ts';
@@ -16,6 +17,7 @@ export const app = express();
 const httpSever = http.createServer(app);
 const io: StrategyServer = new Server(httpSever);
 
+app.use(cors());
 app.use(express.json());
 
 app.use(
