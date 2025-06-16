@@ -1,8 +1,7 @@
 /* eslint no-console: "off" */
 
-import express, { Router, type Request, type Response } from 'express';
+import express, { Router } from 'express';
 import * as http from 'node:http';
-import * as path from 'node:path';
 import * as chat from './controllers/chat.controller.ts';
 import * as game from './controllers/game.controller.ts';
 import * as thread from './controllers/thread.controller.ts';
@@ -10,6 +9,7 @@ import * as comment from './controllers/comment.controller.ts';
 import * as user from './controllers/user.controller.ts';
 import { type StrategyServer } from './types.ts';
 import { Server } from 'socket.io';
+import * as path from 'node:path';
 
 const PORT = parseInt(process.env.PORT || '8000');
 export const app = express();
@@ -17,10 +17,6 @@ const httpSever = http.createServer(app);
 const io: StrategyServer = new Server(httpSever);
 
 app.use(express.json());
-
-// Serve static files from client build
-const clientDistPath = path.join(process.cwd(), '..', 'client', 'dist');
-app.use(express.static(clientDistPath));
 
 app.use(
   '/api',
@@ -96,22 +92,22 @@ io.on('connection', socket => {
 });
 
 export default function startServer() {
-  httpSever.listen(PORT, '0.0.0.0', () => {
+  httpSever.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
 }
 
-// Health check endpoint for Railway
-app.get('/health', (_req: Request, res: Response) => {
-  res.json({
-    status: 'ok',
-    message: 'Strategy Town API Server',
-    mode: process.env.MODE || 'development',
-    timestamp: new Date().toISOString(),
+if (process.env.MODE === 'production') {
+  app.use(express.static(path.join(import.meta.dirname, '../../client/dist')));
+  app.get(/(.*)/, (req, res) =>
+    res.sendFile(path.join(import.meta.dirname, '../../client/dist/index.html')),
+  );
+} else {
+  app.get('/', (req, res) => {
+    res.send(
+      'You are connecting directly to the API server in development mode! ' +
+        'You probably want to look elsewhere for the Vite frontend.',
+    );
+    res.end();
   });
-});
-
-// Serve React app for all non-API routes
-app.get('*', (_req: Request, res: Response) => {
-  res.sendFile(path.join(clientDistPath, 'index.html'));
-});
+}
