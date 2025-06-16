@@ -1,6 +1,6 @@
 /* eslint no-console: "off" */
 
-import express, { Router } from 'express';
+import express, { Router, type Request, type Response } from 'express';
 import * as http from 'node:http';
 import * as chat from './controllers/chat.controller.ts';
 import * as game from './controllers/game.controller.ts';
@@ -97,11 +97,11 @@ export default function startServer() {
 }
 
 // Health check endpoint for Railway
-app.get('/', (_req, res) => {
-  res.json({ 
-    status: 'ok', 
+app.get('/', (_req: Request, res: Response) => {
+  res.json({
+    status: 'ok',
     message: 'Strategy Town API Server',
     mode: process.env.MODE || 'development',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
