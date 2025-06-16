@@ -17,4 +17,28 @@ describe('POST /api/chat/private', () => {
       });
     expect(response.status).toBe(200);
   });
+
+  it('should fail with bad auth', async () => {
+    const response = await supertest(app)
+      .post('/api/chat/private')
+      .send({
+        auth: 'a',
+        payload: {
+          username: auth2.username,
+        },
+      });
+    expect(response.status).toBe(500);
+  });
+
+  it('should fail if given user does not exist', async () => {
+    const response = await supertest(app)
+      .post('/api/chat/private')
+      .send({
+        auth: auth1,
+        payload: {
+          username: 'joe',
+        },
+      });
+    expect(response.status).toBe(404);
+  });
 });
