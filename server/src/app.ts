@@ -2,6 +2,7 @@
 
 import express, { Router, type Request, type Response } from 'express';
 import * as http from 'node:http';
+import * as path from 'node:path';
 import * as chat from './controllers/chat.controller.ts';
 import * as game from './controllers/game.controller.ts';
 import * as thread from './controllers/thread.controller.ts';
@@ -16,6 +17,10 @@ const httpSever = http.createServer(app);
 const io: StrategyServer = new Server(httpSever);
 
 app.use(express.json());
+
+// Serve static files from client build
+const clientDistPath = path.join(process.cwd(), '..', 'client', 'dist');
+app.use(express.static(clientDistPath));
 
 app.use(
   '/api',
@@ -97,11 +102,16 @@ export default function startServer() {
 }
 
 // Health check endpoint for Railway
-app.get('/', (_req: Request, res: Response) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
     message: 'Strategy Town API Server',
     mode: process.env.MODE || 'development',
     timestamp: new Date().toISOString(),
   });
+});
+
+// Serve React app for all non-API routes
+app.get('*', (_req: Request, res: Response) => {
+  res.sendFile(path.join(clientDistPath, 'index.html'));
 });
