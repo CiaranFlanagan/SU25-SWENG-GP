@@ -97,17 +97,12 @@ export default function startServer() {
   });
 }
 
-if (process.env.MODE === 'production') {
-  app.use(express.static(path.join(import.meta.dirname, '../../client/dist')));
-  app.get(/(.*)/, (req, res) =>
-    res.sendFile(path.join(import.meta.dirname, '../../client/dist/index.html')),
-  );
-} else {
-  app.get('/', (req, res) => {
-    res.send(
-      'You are connecting directly to the API server in development mode! ' +
-        'You probably want to look elsewhere for the Vite frontend.',
-    );
-    res.end();
+// Health check endpoint for Railway
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Strategy Town API Server',
+    mode: process.env.MODE || 'development',
+    timestamp: new Date().toISOString()
   });
-}
+});

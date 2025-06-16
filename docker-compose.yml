@@ -1,0 +1,49 @@
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: strategy-town-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodb_data:/data/db
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: strategy-town-server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - MODE=development
+      - PORT=8000
+      # Fallback to local MongoDB if .env doesn't have MONGODB_CONNECTION_STRING
+      - MONGODB_CONNECTION_STRING=${MONGODB_CONNECTION_STRING:-mongodb://admin:password@mongodb:27017/strategy-town?authSource=admin}
+    depends_on:
+      - mongodb
+    volumes:
+      - ./server/src:/app/server/src
+      - ./shared/src:/app/shared/src
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    container_name: strategy-town-client
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
+
+volumes:
+  mongodb_data:

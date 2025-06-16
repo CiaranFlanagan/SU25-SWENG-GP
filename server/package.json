@@ -8,7 +8,7 @@
     "check": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "start": "MODE=production node src/server.ts",
+    "start": "MODE=${MODE:-production} node src/server.ts",
     "test": "vitest run --coverage",
     "vitest": "vitest",
     "format": "npx prettier --write ."
