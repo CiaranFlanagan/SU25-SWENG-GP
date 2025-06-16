@@ -1,6 +1,6 @@
 /* eslint no-console: "off" */
 
-import express, { Router, type Request, type Response } from 'express';
+import express, { Router } from 'express';
 import * as http from 'node:http';
 import * as chat from './controllers/chat.controller.ts';
 import * as game from './controllers/game.controller.ts';
@@ -9,6 +9,7 @@ import * as comment from './controllers/comment.controller.ts';
 import * as user from './controllers/user.controller.ts';
 import { type StrategyServer } from './types.ts';
 import { Server } from 'socket.io';
+import * as path from 'node:path';
 
 const PORT = parseInt(process.env.PORT || '8000');
 export const app = express();
@@ -96,12 +97,17 @@ export default function startServer() {
   });
 }
 
-// Health check endpoint for Railway
-app.get('/', (_req: Request, res: Response) => {
-  res.json({
-    status: 'ok',
-    message: 'Strategy Town API Server',
-    mode: process.env.MODE || 'development',
-    timestamp: new Date().toISOString(),
+if (process.env.MODE === 'production') {
+  app.use(express.static(path.join(import.meta.dirname, '../../client/dist')));
+  app.get(/(.*)/, (req, res) =>
+    res.sendFile(path.join(import.meta.dirname, '../../client/dist/index.html')),
+  );
+} else {
+  app.get('/', (req, res) => {
+    res.send(
+      'You are connecting directly to the API server in development mode! ' +
+        'You probably want to look elsewhere for the Vite frontend.',
+    );
+    res.end();
   });
-});
+}
