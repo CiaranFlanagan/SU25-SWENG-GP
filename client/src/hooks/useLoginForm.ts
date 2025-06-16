@@ -89,7 +89,7 @@ export default function useLoginForm(setAuth: (auth: AuthContext | null) => void
       setErr(user.error);
     } else {
       setAuth({ user, pass: password, reset: () => setAuth(null) });
-      navigate('/');
+      navigate('/home');
     }
   };
 
