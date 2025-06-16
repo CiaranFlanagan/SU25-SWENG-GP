@@ -19,8 +19,10 @@ RUN npm install
 
 # Copy client source code and build
 COPY client/src/ ./client/src/
-COPY client/tsconfig.json ./client/
+COPY client/public/ ./client/public/
+COPY client/tsconfig*.json ./client/
 COPY client/vite.config.ts ./client/
+COPY client/eslint.config.mjs ./client/
 COPY client/index.html ./client/
 RUN npm run build -w=client
 
