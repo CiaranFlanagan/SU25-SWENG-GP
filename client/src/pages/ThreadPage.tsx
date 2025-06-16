@@ -93,31 +93,33 @@ export default function ThreadPage() {
             </div>
           </div>
           <div className='dottedList'>
-            {threadInfo.comments.map(({ _id, text, createdBy, createdAt, editedAt, votes }) => (
-              <div className='dottedListItem' key={_id}>
-                <div className='comment-container'>
-                  <VoteButton
-                    votes={votes || []}
-                    itemId={_id}
-                    itemType='Comment'
-                    onVote={handleCommentVote}
-                    onRemoveVote={handleCommentRemoveVote}
-                  />
-                  <div className='comment-content'>
-                    <div>{text}</div>
-                    <div className='smallAndGray'>
-                      Reply by{' '}
-                      <UserLink username={createdBy.username} displayName={createdBy.display} />{' '}
-                      {createdBy.username === threadInfo.createdBy.username && (
-                        <span className='opBlue'> OP</span>
-                      )}{' '}
-                      {dayjs(createdAt).from(now)}
-                      {editedAt && ` (last edited ${dayjs(editedAt).from(now)})`}
+            {threadInfo.comments
+              .sort((a, b) => b.votes.length - a.votes.length)
+              .map(({ _id, text, createdBy, createdAt, editedAt, votes }) => (
+                <div className='dottedListItem' key={_id}>
+                  <div className='comment-container'>
+                    <VoteButton
+                      votes={votes || []}
+                      itemId={_id}
+                      itemType='Comment'
+                      onVote={handleCommentVote}
+                      onRemoveVote={handleCommentRemoveVote}
+                    />
+                    <div className='comment-content'>
+                      <div>{text}</div>
+                      <div className='smallAndGray'>
+                        Reply by{' '}
+                        <UserLink username={createdBy.username} displayName={createdBy.display} />{' '}
+                        {createdBy.username === threadInfo.createdBy.username && (
+                          <span className='opBlue'> OP</span>
+                        )}{' '}
+                        {dayjs(createdAt).from(now)}
+                        {editedAt && ` (last edited ${dayjs(editedAt).from(now)})`}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
           <NewForumComment
             firstPost={threadInfo.comments.length === 0}
