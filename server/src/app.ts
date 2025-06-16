@@ -9,7 +9,6 @@ import * as comment from './controllers/comment.controller.ts';
 import * as user from './controllers/user.controller.ts';
 import { type StrategyServer } from './types.ts';
 import { Server } from 'socket.io';
-import * as path from 'node:path';
 
 const PORT = parseInt(process.env.PORT || '8000');
 export const app = express();
@@ -98,7 +97,7 @@ export default function startServer() {
 }
 
 // Health check endpoint for Railway
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.json({ 
     status: 'ok', 
     message: 'Strategy Town API Server',
