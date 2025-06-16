@@ -20,5 +20,9 @@ export default function useThreadList(
   if ('error' in threads) return { message: `Error: ${threads.error}` };
   if (threads.length === 0) return { message: 'No threads found...' };
   if (maxSummaries) return threads.slice(0, maxSummaries);
-  return threads.sort((a, b) => b.votes.length - a.votes.length);
+  return threads.sort((a, b) => {
+    const aVotes = a.votes ? a.votes.length : 0;
+    const bVotes = b.votes ? b.votes.length : 0;
+    return bVotes - aVotes;
+  });
 }

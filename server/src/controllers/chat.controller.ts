@@ -1,11 +1,15 @@
 import { withAuth, zNewMessageRequest } from '@strategy-town/shared';
 import { type RestAPI, type SocketAPI } from '../types.ts';
 import { z } from 'zod';
-import { addMessageToChat, forceChatById } from '../services/chat.service.ts';
+import {
+  addMessageToChat,
+  forceChatById,
+  getOrCreatePrivateChat,
+} from '../services/chat.service.ts';
 import { enforceAuth, populateSafeUserInfo } from '../services/user.service.ts';
 import { createMessage, populateMessageInfo } from '../services/message.service.ts';
 import { logSocketError } from './socket.controller.ts';
-import { getOrCreatePrivateChat } from '../services/chat.service.ts';
+
 import { UserModel } from '../models/user.model.ts';
 const zCreateDM = withAuth(z.object({ username: z.string() }));
 
@@ -74,6 +78,9 @@ export const socketSendMessage: SocketAPI = (socket, io) => async body => {
   }
 };
 
+/**
+ * Handle a POST request to start or continue a DM with another user privately.
+ */
 export const postPrivate: RestAPI = async (req, res) => {
   const { auth, payload } = zCreateDM.parse(req.body);
   const user = await enforceAuth(auth);
