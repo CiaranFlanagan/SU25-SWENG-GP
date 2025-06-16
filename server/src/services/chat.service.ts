@@ -75,7 +75,7 @@ export async function addMessageToChat(
 
 /**
  * Gets or creates the private chat for two users
- * 
+ *
  * @param a Authenticated user 1
  * @param b Authenticated user 2
  * @returns the chat info object for the two users
