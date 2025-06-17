@@ -21,7 +21,7 @@ export default function SideBarNav() {
 
   return (
     <div className='sideBarNav'>
-      <NavLink to='/' className={navClass}>
+      <NavLink to='/home' className={navClass}>
         Home
       </NavLink>
       <NavLink to='/games' className={navClass}>
