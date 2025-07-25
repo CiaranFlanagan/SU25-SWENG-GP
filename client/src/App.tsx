@@ -1,6 +1,6 @@
 /* eslint no-console: "off" */
 
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Login from './pages/Login.tsx';
 import { AuthContext } from './contexts/LoginContext.ts';
@@ -49,6 +49,7 @@ export default function App() {
     socket && (
       <BrowserRouter>
         <Routes>
+          <Route path='/' element={<Navigate to='/login' replace />} />
           <Route path='/login' element={<Login setAuth={auth => setAuth(auth)} />} />
           <Route
             element={
@@ -58,7 +59,7 @@ export default function App() {
                 </ErrorBoundary>
               </LoggedInRoute>
             }>
-            <Route path='/' element={<Home />} />
+            <Route path='/home' element={<Home />} />
             <Route path='/forum' element={<ThreadList />} />
             <Route path='/forum/post/new' element={<NewThread />} />
             <Route path='/forum/post/:threadId' element={<ThreadPage />} />
@@ -66,8 +67,8 @@ export default function App() {
             <Route path='/game/new' element={<NewGame />} />
             <Route path='/game/:gameId' element={<Game />} />
             <Route path='/profile/:username' element={<Profile />} />
-            <Route path='/*' element={<NoSuchRoute />} />
             <Route path='/chat' element={<PrivateChat />} />
+            <Route path='/*' element={<NoSuchRoute />} />
           </Route>
         </Routes>
       </BrowserRouter>
