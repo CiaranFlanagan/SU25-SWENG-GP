@@ -24,6 +24,7 @@ export interface GameInfo {
 }
 
 /**
+ * hellogit 
  * Represents game information needed to load a view of a game, which may or
  * may not be in progress.
  * - `_id`: database key
